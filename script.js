@@ -238,7 +238,7 @@ function setupHeaderActions() {
             if (tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
         });
     }
-    if (settingsBtn) {
+    if (settingsBtn && !settingsBtn.disabled) {
         settingsBtn.addEventListener('click', () => {
             const current = document.body.classList.contains('theme-light') ? 'light' : 'dark';
             const next = current === 'light' ? 'dark' : 'light';
