@@ -257,12 +257,19 @@ async function loadTopUsers() {
     list.innerHTML = '<div class="leaderboard-empty">Загрузка...</div>';
     try {
         if (supabase) {
-            const { data, error } = await supabase
+            let resp = await supabase
                 .from('users')
                 .select('username, balance, telegram_id, avatar_url')
                 .order('balance', { ascending: false })
                 .limit(50);
-            if (error) throw error;
+            if (resp.error) {
+                resp = await supabase
+                    .from('users')
+                    .select('username, balance, telegram_id')
+                    .order('balance', { ascending: false })
+                    .limit(50);
+            }
+            const data = resp.data;
             if (data && data.length) {
                 list.innerHTML = '';
                 const meId = tg.initDataUnsafe?.user?.id;
