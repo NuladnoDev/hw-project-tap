@@ -25,6 +25,10 @@
     --tap-text: #ffae00;
     --tap-ring: rgba(255,174,0,0.35);
     --tap-fill: rgba(255,174,0,0.15);
+    --ambient-primary: #ffae00;
+    --ambient-secondary: #ffffff;
+    --ambient-ring-1: rgba(255,174,0,0.6);
+    --ambient-ring-2: rgba(255,140,0,0.2);
 }
 /* Light theme variables */
 .theme-light {
@@ -40,6 +44,10 @@
     --tap-text: #3399ff;
     --tap-ring: rgba(51,153,255,0.35);
     --tap-fill: rgba(51,153,255,0.18);
+    --ambient-primary: #3399ff;
+    --ambient-secondary: #a8d8ff;
+    --ambient-ring-1: rgba(51,153,255,0.6);
+    --ambient-ring-2: rgba(51,153,255,0.18);
 }
 
 * {
@@ -296,14 +304,17 @@ body {
     transition: transform 0.1s cubic-bezier(0.17, 0.67, 0.83, 0.67);
     margin-top: 15px;
     margin-bottom: 60px;
+    position: relative;
 }
 
 .character-img {
     width: 80%;
     height: 80%;
     object-fit: contain;
-    filter: brightness(0) invert(1); /* Make it white */
-    pointer-events: none; /* Let clicks pass to container */
+    filter: brightness(0) invert(1);
+    pointer-events: none;
+    position: relative;
+    z-index: 3;
 }
 .theme-light .character-img { filter: none; }
 
@@ -311,6 +322,95 @@ body {
     opacity: 0.5;
     filter: grayscale(1);
     cursor: not-allowed;
+}
+
+.character-glow {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(0,0,0,0) 35%, var(--ambient-primary) 70%, rgba(0,0,0,0) 100%);
+    filter: blur(30px);
+    opacity: 0.25;
+    z-index: 1;
+    pointer-events: none;
+}
+
+.character-ring {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 115%;
+    height: 115%;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background: conic-gradient(from 0deg, var(--ambient-ring-1), var(--ambient-ring-2), var(--ambient-ring-1));
+    -webkit-mask: radial-gradient(circle, transparent 46%, black 48%, black 52%, transparent 54%);
+    mask: radial-gradient(circle, transparent 46%, black 48%, black 52%, transparent 54%);
+    animation: spinSlow 12s linear infinite;
+    opacity: 0.35;
+    z-index: 2;
+    pointer-events: none;
+}
+
+.character-orbit {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 8px;
+    height: 8px;
+    background: var(--ambient-secondary);
+    border-radius: 50%;
+    box-shadow: 0 0 10px var(--ambient-ring-1);
+    transform-origin: -120px -120px;
+    animation: orbit 6s linear infinite;
+    z-index: 2;
+    pointer-events: none;
+}
+
+.character-stars {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    z-index: 1;
+    pointer-events: none;
+}
+
+.ambient-dot {
+    position: absolute;
+    width: var(--size, 6px);
+    height: var(--size, 6px);
+    border-radius: 50%;
+    background: radial-gradient(circle, #fff 0%, var(--ambient-secondary) 60%);
+    box-shadow: 0 0 10px var(--ambient-ring-1);
+    animation: twinkle var(--duration, 2600ms) ease-in-out var(--delay, 0ms) infinite;
+    opacity: 0.9;
+}
+
+@keyframes spinSlow {
+    0% { transform: translate(-50%, -50%) rotate(0deg); }
+    100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+@keyframes orbit {
+    0% { transform: translate(-50%, -50%) rotate(0deg); }
+    100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+@keyframes twinkle {
+    0%, 100% { opacity: 0.2; transform: scale(0.9); }
+    50% { opacity: 1; transform: scale(1.05); }
+}
+
+.character-container.disabled .character-glow,
+.character-container.disabled .character-ring,
+.character-container.disabled .ambient-dot {
+    opacity: 0.3;
 }
 
 /* Energy Bar Styles */
