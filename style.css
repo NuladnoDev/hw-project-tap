@@ -1,0 +1,270 @@
+@font-face {
+    font-family: 'DrukTextWide';
+    src: url('fonts/DrukTextWide-Bold-Trial.otf') format('opentype');
+    font-weight: bold;
+    font-style: normal;
+}
+
+:root {
+    --bg-color: #101010;
+    --text-color: #ffffff;
+    --accent-color: #ffffff;
+    --nav-bg: #111111;
+    --nav-active: #ffffff;
+    --nav-inactive: #666666;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-family: 'DrukTextWide', sans-serif;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    touch-action: none; /* Prevent pull-to-refresh and scrolling */
+}
+
+.app-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+    position: relative;
+}
+
+/* Score Section */
+.score-container {
+    padding-top: 40px;
+    text-align: center;
+    z-index: 10;
+}
+
+.score-label {
+    font-size: 12px;
+    color: var(--nav-inactive);
+    letter-spacing: 1px;
+    margin-bottom: 5px;
+    display: block;
+}
+
+#score {
+    font-size: 48px;
+    font-weight: bold;
+    letter-spacing: 2px;
+}
+
+/* Game Area */
+.game-area {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+.character-container {
+    width: 280px;
+    height: 280px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(0,0,0,0) 70%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: transform 0.1s cubic-bezier(0.17, 0.67, 0.83, 0.67);
+}
+
+.character-container:active {
+    transform: scale(0.95);
+}
+
+.character-img {
+    width: 80%;
+    height: 80%;
+    object-fit: contain;
+    filter: drop-shadow(0 0 15px rgba(255,255,255,0.2)) brightness(0) invert(1);
+}
+
+/* Dynamic Content Area */
+.content-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* Centers content vertically */
+    position: relative;
+    overflow-y: auto;
+}
+
+/* Screen Container Styles */
+.screen-container {
+    padding: 20px;
+    width: 100%;
+    height: 100%;
+}
+
+.screen-container h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 24px;
+    letter-spacing: 2px;
+}
+
+/* Upgrade & Skin Lists */
+.upgrade-list, .skins-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.skins-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+}
+
+.upgrade-item, .skin-card {
+    background: #1a1a1a;
+    border-radius: 15px;
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    border: 1px solid #333;
+}
+
+.skin-card {
+    flex-direction: column;
+    text-align: center;
+}
+
+.upgrade-icon, .skin-preview {
+    font-size: 24px;
+    background: #333;
+    width: 50px;
+    height: 50px;
+    border-radius: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.upgrade-info {
+    flex: 1;
+}
+
+.upgrade-info h3, .skin-card h3 {
+    font-size: 14px;
+    margin-bottom: 5px;
+}
+
+.upgrade-info p {
+    font-size: 12px;
+    color: #888;
+}
+
+.upgrade-btn, .skin-btn {
+    background: #fff;
+    color: #000;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 20px;
+    font-weight: bold;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.skin-btn:disabled {
+    background: #333;
+    color: #fff;
+}
+
+/* Floating Text Animation */
+.floating-text {
+    position: absolute;
+    color: white;
+    font-size: 24px;
+    font-weight: bold;
+    pointer-events: none;
+    animation: floatUp 1s ease-out forwards;
+    z-index: 100;
+}
+
+@keyframes floatUp {
+    0% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(-100px) scale(1.2);
+    }
+}
+
+/* Bottom Navigation */
+.bottom-nav {
+    height: 80px;
+    background-color: var(--nav-bg);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding-bottom: 15px; /* Safe area for iPhone home indicator */
+    border-top: 1px solid #222;
+}
+
+.nav-item {
+    background: none;
+    border: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    cursor: pointer;
+    color: var(--nav-inactive);
+    transition: color 0.2s;
+    width: 33%;
+}
+
+.nav-item.active {
+    color: var(--nav-active);
+}
+
+.nav-icon {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.nav-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    /* Invert color for inactive icons if they are black, or handle via filter */
+    /* Assuming SVGs are black, we invert them to white */
+    filter: invert(1) opacity(0.4);
+    transition: filter 0.2s;
+}
+
+.nav-item.active .nav-icon img {
+    filter: invert(1) opacity(1);
+}
+
+.nav-label {
+    font-size: 10px;
+    font-family: sans-serif; /* Use simpler font for small labels */
+    font-weight: 500;
+}

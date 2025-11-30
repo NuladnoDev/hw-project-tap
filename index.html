@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Tapalka Game</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <div class="app-container">
+        <div class="score-container">
+            <span class="score-label">BALANCE</span>
+            <h1 id="score">0</h1>
+        </div>
+
+        <!-- Dynamic Content Container -->
+        <div id="app-content" class="content-area">
+            <!-- Content will be loaded here -->
+        </div>
+
+        <nav class="bottom-nav">
+            <button class="nav-item" id="nav-upgrade">
+                <div class="nav-icon">
+                    <img src="icons/navigation/maximize-svgrepo-com.svg" alt="Upgrade">
+                </div>
+                <span class="nav-label">Прокачка</span>
+            </button>
+            <button class="nav-item active" id="nav-home">
+                <div class="nav-icon">
+                    <img src="icons/navigation/house-02-svgrepo-com.svg" alt="Home">
+                </div>
+                <span class="nav-label">Тапалка</span>
+            </button>
+            <button class="nav-item" id="nav-skins">
+                <div class="nav-icon">
+                    <img src="icons/navigation/skin-svgrepo-com.svg" alt="Skins">
+                </div>
+                <span class="nav-label">Скины</span>
+            </button>
+        </nav>
+    </div>
+
+    <script type="module" src="script.js"></script>
+</body>
+</html>
