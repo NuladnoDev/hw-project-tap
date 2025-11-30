@@ -325,16 +325,25 @@ async function loadUserData() {
                 updateScoreDisplay();
                 localStorage.setItem('tapalka_score', score);
                 const tgUsername = user.username;
+                const tgPhotoUrl = user.photo_url;
                 if (!data.username && tgUsername) {
                     await supabase
                         .from('users')
                         .update({ username: tgUsername })
                         .eq('telegram_id', user.id);
                 }
+                if (tgPhotoUrl) {
+                    try {
+                        await supabase
+                            .from('users')
+                            .update({ avatar_url: tgPhotoUrl })
+                            .eq('telegram_id', user.id);
+                    } catch (_) {}
+                }
             } else if (error && error.code === 'PGRST116') {
                 // User doesn't exist, create them
                 await supabase.from('users').insert([
-                    { telegram_id: user.id, username: user.username, balance: score }
+                    { telegram_id: user.id, username: user.username, balance: score, avatar_url: user.photo_url }
                 ]);
             }
         }
