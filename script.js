@@ -6,6 +6,10 @@ tg.expand();
 
 // Game State
 let score = 0;
+let maxEnergy = 30;
+let currentEnergy = maxEnergy;
+const REGEN_RATE = maxEnergy / 7; // Restore full energy in 7 seconds (energy per second)
+
 const scoreElement = document.getElementById('score');
 const contentArea = document.getElementById('app-content');
 
@@ -27,10 +31,11 @@ async function loadScreen(screenUrl) {
         // Re-attach event listeners for dynamic content
         if (screenUrl.includes('home.html')) {
             attachHomeListeners();
+            updateEnergyDisplay(); // Initial update for home screen
         } else if (screenUrl.includes('upgrade.html')) {
             // attachUpgradeListeners();
         } else if (screenUrl.includes('skins.html')) {
-            // attachSkinsListeners();
+            attachSkinsListeners();
         }
     } catch (error) {
         console.error('Error loading screen:', error);
@@ -48,6 +53,9 @@ async function initApp() {
     
     // 3. Setup Navigation
     setupNavigation();
+    
+    // 4. Start Energy Regen Loop
+    startEnergyRegen();
 }
 
 // Navigation Setup
@@ -87,19 +95,97 @@ function attachHomeListeners() {
 function handleTap(e) {
     e.preventDefault();
     
-    // Increment Score
-    score++;
-    updateScoreDisplay();
-    saveScoreDebounced(); // Save to DB
-    
-    // Haptic
-    if (tg.HapticFeedback) {
-        tg.HapticFeedback.impactOccurred('medium');
-    }
+    if (currentEnergy >= 1) {
+        // Decrement Energy
+        currentEnergy--;
+        updateEnergyDisplay();
+        
+        // Increment Score
+        score++;
+        updateScoreDisplay();
+        saveScoreDebounced(); // Save to DB
+        
+        // Haptic
+        if (tg.HapticFeedback) {
+            tg.HapticFeedback.impactOccurred('medium');
+        }
 
-    // Animation
-    showFloatingText(e.clientX, e.clientY);
+        // Animation
+        showFloatingText(e.clientX, e.clientY);
+        
+        // Character Animation
+        const charContainer = document.getElementById('character-btn');
+        if (charContainer) {
+            charContainer.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                charContainer.style.transform = 'scale(1)';
+            }, 100);
+        }
+    } else {
+        // No Energy Haptic
+        if (tg.HapticFeedback) {
+            tg.HapticFeedback.notificationOccurred('error');
+        }
+    }
 }
+
+// --- ENERGY LOGIC ---
+function startEnergyRegen() {
+    setInterval(() => {
+        if (currentEnergy < maxEnergy) {
+            currentEnergy += REGEN_RATE * 0.1; // 0.1s interval
+            if (currentEnergy > maxEnergy) currentEnergy = maxEnergy;
+            updateEnergyDisplay();
+        }
+    }, 100);
+}
+
+function updateEnergyDisplay() {
+    const fill = document.getElementById('energy-fill');
+    const currentEl = document.getElementById('current-energy');
+    const maxEl = document.getElementById('max-energy');
+    
+    if (fill && currentEl && maxEl) {
+        const percentage = (currentEnergy / maxEnergy) * 100;
+        fill.style.width = `${percentage}%`;
+        currentEl.innerText = Math.floor(currentEnergy);
+        maxEl.innerText = maxEnergy;
+    }
+}
+
+// --- SKINS LOGIC ---
+function attachSkinsListeners() {
+    const skins = document.querySelectorAll('.skin-card');
+    skins.forEach(skin => {
+        skin.addEventListener('click', () => {
+            // Remove active class from all
+            skins.forEach(s => s.classList.remove('active'));
+            skins.forEach(s => {
+                const btn = s.querySelector('.skin-btn');
+                if (btn) {
+                    btn.innerText = 'Выбрать';
+                    btn.disabled = false;
+                }
+            });
+            
+            // Add active to clicked
+            skin.classList.add('active');
+            const btn = skin.querySelector('.skin-btn');
+            if (btn) {
+                btn.innerText = 'Выбрано';
+                btn.disabled = true;
+            }
+            
+            // Haptic
+            if (tg.HapticFeedback) {
+                tg.HapticFeedback.selectionChanged();
+            }
+            
+            // Logic to save selected skin would go here
+        });
+    });
+}
+
 
 // --- DATA & STATE ---
 async function loadUserData() {
