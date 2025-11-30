@@ -41,6 +41,9 @@ async function loadScreen(screenUrl) {
         } else if (screenUrl.includes('skins.html')) {
             contentArea.classList.remove('home');
             attachSkinsListeners();
+        } else if (screenUrl.includes('top_users.html')) {
+            contentArea.classList.remove('home');
+            loadTopUsers();
         }
     } catch (error) {
         console.error('Error loading screen:', error);
@@ -56,8 +59,9 @@ async function initApp() {
     // 2. Load Home Screen by default
     await loadScreen(routes['nav-home']);
     
-    // 3. Setup Navigation
+    // 3. Setup Navigation & header actions
     setupNavigation();
+    setupHeaderActions();
     
     // 4. Start Energy Regen Loop
     startEnergyRegen();
@@ -217,6 +221,67 @@ function attachSkinsListeners() {
             // Logic to save selected skin would go here
         });
     });
+}
+
+// Header buttons (top, settings, agreement)
+function setupHeaderActions() {
+    const leaderboardBtn = document.getElementById('btn-leaderboard');
+    const settingsBtn = document.getElementById('btn-settings');
+    const agreementBtn = document.getElementById('btn-agreement');
+    const agreementLabel = document.querySelector('.score-agreement-label');
+    if (leaderboardBtn) {
+        leaderboardBtn.addEventListener('click', () => {
+            loadScreen('screens/top_users.html');
+            if (tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
+        });
+    }
+    if (settingsBtn) {
+        settingsBtn.addEventListener('click', () => {
+            loadScreen('screens/upgrade.html');
+            if (tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
+        });
+    }
+    const openAgreement = () => {
+        const url = 'https://telegra.ph/KONFIDENCIALNOE-SOGLASHENIE-NDA-11-30';
+        if (tg.openLink) tg.openLink(url); else window.open(url, '_blank');
+        if (tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
+    };
+    if (agreementBtn) agreementBtn.addEventListener('click', openAgreement);
+    if (agreementLabel) agreementLabel.addEventListener('click', openAgreement);
+}
+
+// Load leaderboard from Supabase
+async function loadTopUsers() {
+    const list = document.getElementById('leaderboard-list');
+    if (!list) return;
+    list.innerHTML = '<div class="leaderboard-empty">Загрузка...</div>';
+    try {
+        if (supabase) {
+            const { data, error } = await supabase
+                .from('users')
+                .select('username, balance')
+                .order('balance', { ascending: false })
+                .limit(50);
+            if (error) throw error;
+            if (data && data.length) {
+                list.innerHTML = '';
+                data.forEach((u, i) => {
+                    const item = document.createElement('div');
+                    item.className = 'leaderboard-item';
+                    item.innerHTML = `
+                        <div class="leaderboard-rank">${i + 1}</div>
+                        <div class="leaderboard-user">${u.username || 'Без имени'}</div>
+                        <div class="leaderboard-balance">${Number(u.balance || 0).toLocaleString()}</div>
+                    `;
+                    list.appendChild(item);
+                });
+                return;
+            }
+        }
+        list.innerHTML = '<div class="leaderboard-empty">Нет данных</div>';
+    } catch (e) {
+        list.innerHTML = '<div class="leaderboard-empty">Ошибка загрузки</div>';
+    }
 }
 
 
