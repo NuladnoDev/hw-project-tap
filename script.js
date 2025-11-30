@@ -33,6 +33,7 @@ async function loadScreen(screenUrl) {
         if (screenUrl.includes('home.html')) {
             attachHomeListeners();
             updateEnergyDisplay(); // Initial update for home screen
+            updateCharacterState(); // Ensure correct state
         } else if (screenUrl.includes('upgrade.html')) {
             // attachUpgradeListeners();
         } else if (screenUrl.includes('skins.html')) {
@@ -96,9 +97,23 @@ function attachHomeListeners() {
 function handleTap(e) {
     e.preventDefault();
     
+    if (isExhausted) {
+        if (tg.HapticFeedback) {
+            tg.HapticFeedback.notificationOccurred('error');
+        }
+        return;
+    }
+
     if (currentEnergy >= 1) {
         // Decrement Energy
         currentEnergy--;
+        
+        if (currentEnergy <= 0) {
+            currentEnergy = 0;
+            isExhausted = true;
+            updateCharacterState();
+        }
+        
         updateEnergyDisplay();
         
         // Increment Score
@@ -122,11 +137,6 @@ function handleTap(e) {
                 charContainer.style.transform = 'scale(1)';
             }, 100);
         }
-    } else {
-        // No Energy Haptic
-        if (tg.HapticFeedback) {
-            tg.HapticFeedback.notificationOccurred('error');
-        }
     }
 }
 
@@ -135,10 +145,28 @@ function startEnergyRegen() {
     setInterval(() => {
         if (currentEnergy < maxEnergy) {
             currentEnergy += REGEN_RATE * 0.1; // 0.1s interval
+            
+            // Check exhaustion recovery
+            if (isExhausted && currentEnergy >= maxEnergy / 2) {
+                isExhausted = false;
+                updateCharacterState();
+            }
+            
             if (currentEnergy > maxEnergy) currentEnergy = maxEnergy;
             updateEnergyDisplay();
         }
     }, 100);
+}
+
+function updateCharacterState() {
+    const charContainer = document.getElementById('character-btn');
+    if (charContainer) {
+        if (isExhausted) {
+            charContainer.classList.add('disabled');
+        } else {
+            charContainer.classList.remove('disabled');
+        }
+    }
 }
 
 function updateEnergyDisplay() {

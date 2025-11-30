@@ -52,6 +52,12 @@ body {
     position: relative;
 }
 
+/* Dynamic content area should take remaining space */
+.content-area {
+    flex: 1;
+    overflow-y: auto;
+}
+
 /* Score Section */
 .score-container {
     padding-top: 40px;
@@ -178,11 +184,16 @@ body {
     letter-spacing: 1px;
 }
 
+.energy-note {
+    margin-left: 8px;
+    font-size: 11px;
+    color: #777;
+    opacity: 0.8;
+}
+
 /* Upgrade & Skin UI Improvements */
 .screen-container {
     padding: 20px;
-    height: 100%;
-    overflow-y: auto;
 }
 
 .screen-container h2 {
@@ -311,7 +322,7 @@ body {
     display: flex;
     justify-content: space-around;
     align-items: center;
-    padding-bottom: 15px; /* Safe area for iPhone home indicator */
+    padding-bottom: env(safe-area-inset-bottom, 0px);
     border-top: 1px solid #222;
 }
 
