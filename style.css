@@ -186,6 +186,15 @@ body {
     filter: none;
 }
 
+/* Disabled state for action buttons */
+.score-action-btn[disabled] {
+    opacity: 0.45;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+.score-action-btn[disabled] img { filter: invert(1) brightness(0.7); opacity: 0.5; }
+.theme-light .score-action-btn[disabled] img { filter: brightness(0.65); opacity: 0.5; }
+
 .score-action-btn:active {
     transform: scale(0.95);
 }
