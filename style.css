@@ -606,3 +606,5 @@ body {
     font-size: 22px;
     font-weight: 600;
 }
+.leaderboard-item { cursor: pointer; }
+.leaderboard-item:active { transform: scale(0.98); }

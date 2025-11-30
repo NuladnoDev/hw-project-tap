@@ -259,7 +259,7 @@ async function loadTopUsers() {
         if (supabase) {
             const { data, error } = await supabase
                 .from('users')
-                .select('username, balance')
+                .select('username, balance, telegram_id')
                 .order('balance', { ascending: false })
                 .limit(50);
             if (error) throw error;
@@ -268,11 +268,21 @@ async function loadTopUsers() {
                 data.forEach((u, i) => {
                     const item = document.createElement('div');
                     item.className = 'leaderboard-item';
+                    const display = u.username ? `@${u.username}` : `@id${u.telegram_id}`;
+                    const profileUrl = u.username ? `https://t.me/${u.username}` : `tg://user?id=${u.telegram_id}`;
                     item.innerHTML = `
                         <div class="leaderboard-rank">${i + 1}</div>
-                        <div class="leaderboard-user">${u.username || 'Без имени'}</div>
+                        <div class="leaderboard-user">${display}</div>
                         <div class="leaderboard-balance">${Number(u.balance || 0).toLocaleString()}</div>
                     `;
+                    item.addEventListener('click', () => {
+                        if (window.Telegram?.WebApp?.openLink) {
+                            window.Telegram.WebApp.openLink(profileUrl);
+                        } else {
+                            window.open(profileUrl, '_blank');
+                        }
+                        if (tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
+                    });
                     list.appendChild(item);
                 });
                 return;
