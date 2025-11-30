@@ -8,7 +8,8 @@ tg.expand();
 let score = 0;
 let maxEnergy = 30;
 let currentEnergy = maxEnergy;
-const REGEN_RATE = maxEnergy / 7; // Restore full energy in 7 seconds (energy per second)
+let isExhausted = false;
+const REGEN_RATE = maxEnergy / 10; // Restore full energy in 10 seconds
 
 const scoreElement = document.getElementById('score');
 const contentArea = document.getElementById('app-content');
