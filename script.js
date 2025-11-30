@@ -259,23 +259,28 @@ async function loadTopUsers() {
         if (supabase) {
             const { data, error } = await supabase
                 .from('users')
-                .select('username, balance, telegram_id')
+                .select('username, balance, telegram_id, avatar_url')
                 .order('balance', { ascending: false })
                 .limit(50);
             if (error) throw error;
             if (data && data.length) {
                 list.innerHTML = '';
+                const meId = tg.initDataUnsafe?.user?.id;
                 data.forEach((u, i) => {
                     const item = document.createElement('div');
                     item.className = 'leaderboard-item';
                     const hasUsername = typeof u.username === 'string' && u.username.trim().length > 0;
                     const display = hasUsername ? `@${u.username.trim()}` : `@id${u.telegram_id}`;
                     const profileUrl = hasUsername ? `https://t.me/${u.username.trim()}` : `tg://user?id=${u.telegram_id}`;
+                    const avatar = u.avatar_url || 'icons/navigation/human-boy-person-man-svgrepo-com.svg';
                     item.innerHTML = `
                         <div class="leaderboard-rank">${i + 1}</div>
-                        <div class="leaderboard-user">${display}</div>
+                        <div class="leaderboard-user">${display}<img class="leaderboard-avatar" src="${avatar}" alt="avatar"></div>
                         <div class="leaderboard-balance">${Number(u.balance || 0).toLocaleString()}</div>
                     `;
+                    if (meId && Number(u.telegram_id) === Number(meId)) {
+                        item.classList.add('me');
+                    }
                     item.addEventListener('click', () => {
                         if (tg.openTelegramLink && profileUrl.startsWith('tg://')) {
                             tg.openTelegramLink(profileUrl);
