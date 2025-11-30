@@ -192,7 +192,8 @@ function attachSkinsListeners() {
             skins.forEach(s => {
                 const btn = s.querySelector('.skin-btn');
                 if (btn) {
-                    btn.innerText = 'Выбрать';
+                    const price = s.dataset.price;
+                    btn.innerText = price ? price : 'Выбрать';
                     btn.disabled = false;
                 }
             });
@@ -201,7 +202,7 @@ function attachSkinsListeners() {
             skin.classList.add('active');
             const btn = skin.querySelector('.skin-btn');
             if (btn) {
-                btn.innerText = 'Выбрано';
+                btn.innerText = 'выбран';
                 btn.disabled = true;
             }
             

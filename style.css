@@ -91,10 +91,10 @@ body {
 }
 
 .character-container {
-    width: 70vw;
-    height: 70vw;
-    max-width: 280px;
-    max-height: 280px;
+    width: 80vw;
+    height: 80vw;
+    max-width: 320px;
+    max-height: 320px;
     border-radius: 50%;
     background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(0,0,0,0) 70%);
     display: flex;
@@ -102,7 +102,7 @@ body {
     align-items: center;
     cursor: pointer;
     transition: transform 0.1s cubic-bezier(0.17, 0.67, 0.83, 0.67);
-    margin-bottom: 40px;
+    margin-bottom: 60px;
 }
 
 .character-img {
@@ -127,6 +127,10 @@ body {
     flex-direction: column;
     align-items: center;
     gap: 8px;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: calc(80px + 12px); /* nav height + gap */
 }
 
 .energy-bar {
@@ -231,6 +235,8 @@ body {
     flex-direction: column;
     text-align: center;
     cursor: pointer;
+    min-height: 180px;
+    gap: 12px;
 }
 
 .skin-card.active {
@@ -270,6 +276,12 @@ body {
     margin-bottom: 5px;
 }
 
+.skin-meta {
+    font-size: 11px;
+    color: #888;
+    line-height: 1.4;
+}
+
 .upgrade-info p {
     font-size: 12px;
     color: #888;
@@ -289,6 +301,11 @@ body {
 .skin-btn:disabled {
     background: #333;
     color: #fff;
+}
+
+.skin-btn.price {
+    background: #fff;
+    color: #000;
 }
 
 /* Floating Text Animation */
@@ -370,4 +387,24 @@ body {
     font-size: 10px;
     font-family: 'VKSansDisplay', sans-serif;
     font-weight: 500;
+}
+
+.screen-subtitle {
+    font-size: 12px;
+    color: #aaa;
+    text-align: center;
+    margin: -8px 16px 16px;
+}
+
+.ad-placeholder {
+    margin-top: 16px;
+    background: #171717;
+    border: 1px solid #222;
+    border-radius: 16px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    font-weight: 600;
 }
