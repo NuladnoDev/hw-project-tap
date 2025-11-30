@@ -136,8 +136,8 @@ function handleTap(e) {
             tg.HapticFeedback.impactOccurred('medium');
         }
 
-        // Animation
-        showFloatingText(e.clientX, e.clientY);
+        // Effects
+        showTapEffects(e.clientX, e.clientY);
         
         // Character Animation
         const charContainer = document.getElementById('character-btn');
@@ -418,6 +418,53 @@ function showFloatingText(x, y) {
     setTimeout(() => {
         floatingText.remove();
     }, 1000);
+}
+
+function showTapEffects(x, y) {
+    if (x === 0 && y === 0) {
+        const btn = document.getElementById('character-btn');
+        if (btn) {
+            const rect = btn.getBoundingClientRect();
+            x = rect.left + rect.width / 2;
+            y = rect.top + rect.height / 2;
+        }
+    }
+
+    // Ripple
+    const ripple = document.createElement('div');
+    ripple.className = 'tap-ripple';
+    ripple.style.left = `${x}px`;
+    ripple.style.top = `${y}px`;
+    document.body.appendChild(ripple);
+    setTimeout(() => ripple.remove(), 520);
+
+    // Sparkles
+    const count = 8;
+    for (let i = 0; i < count; i++) {
+        const sparkle = document.createElement('div');
+        sparkle.className = 'tap-sparkle';
+        const angle = Math.random() * Math.PI * 2;
+        const dist = 30 + Math.random() * 30;
+        const size = 6 + Math.random() * 6;
+        const dx = Math.cos(angle) * dist;
+        const dy = Math.sin(angle) * dist;
+        sparkle.style.left = `${x}px`;
+        sparkle.style.top = `${y}px`;
+        sparkle.style.setProperty('--dx', `${dx}px`);
+        sparkle.style.setProperty('--dy', `${dy}px`);
+        sparkle.style.setProperty('--size', `${size}px`);
+        document.body.appendChild(sparkle);
+        setTimeout(() => sparkle.remove(), 700);
+    }
+
+    // Floating +1
+    showFloatingText(x, y);
+
+    // Score bounce
+    if (scoreElement) {
+        scoreElement.classList.add('score-pop');
+        setTimeout(() => scoreElement.classList.remove('score-pop'), 360);
+    }
 }
 
 // Start
