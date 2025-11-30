@@ -31,12 +31,15 @@ async function loadScreen(screenUrl) {
         
         // Re-attach event listeners for dynamic content
         if (screenUrl.includes('home.html')) {
+            contentArea.classList.add('home');
             attachHomeListeners();
             updateEnergyDisplay(); // Initial update for home screen
             updateCharacterState(); // Ensure correct state
         } else if (screenUrl.includes('upgrade.html')) {
+            contentArea.classList.remove('home');
             // attachUpgradeListeners();
         } else if (screenUrl.includes('skins.html')) {
+            contentArea.classList.remove('home');
             attachSkinsListeners();
         }
     } catch (error) {
