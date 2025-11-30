@@ -440,6 +440,9 @@ body {
 
 .leaderboard-user {
     flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .leaderboard-balance {
@@ -451,6 +454,20 @@ body {
     color: #888;
     text-align: center;
     padding: 20px 0;
+}
+
+.leaderboard-item.me {
+    border-color: #4a2d00;
+    box-shadow: 0 0 0 1px rgba(255,174,0,0.15), inset 0 1px 0 rgba(255,174,0,0.08);
+}
+.leaderboard-item.me .leaderboard-user { color: #ffae00; }
+
+.leaderboard-avatar {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #2a2a2a;
+    object-fit: cover;
 }
 
 .skin-preview img {

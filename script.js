@@ -268,18 +268,21 @@ async function loadTopUsers() {
                 data.forEach((u, i) => {
                     const item = document.createElement('div');
                     item.className = 'leaderboard-item';
-                    const display = u.username ? `@${u.username}` : `@id${u.telegram_id}`;
-                    const profileUrl = u.username ? `https://t.me/${u.username}` : `tg://user?id=${u.telegram_id}`;
+                    const hasUsername = typeof u.username === 'string' && u.username.trim().length > 0;
+                    const display = hasUsername ? `@${u.username.trim()}` : `@id${u.telegram_id}`;
+                    const profileUrl = hasUsername ? `https://t.me/${u.username.trim()}` : `tg://user?id=${u.telegram_id}`;
                     item.innerHTML = `
                         <div class="leaderboard-rank">${i + 1}</div>
                         <div class="leaderboard-user">${display}</div>
                         <div class="leaderboard-balance">${Number(u.balance || 0).toLocaleString()}</div>
                     `;
                     item.addEventListener('click', () => {
-                        if (window.Telegram?.WebApp?.openLink) {
-                            window.Telegram.WebApp.openLink(profileUrl);
+                        if (tg.openTelegramLink && profileUrl.startsWith('tg://')) {
+                            tg.openTelegramLink(profileUrl);
+                        } else if (tg.openLink) {
+                            tg.openLink(profileUrl);
                         } else {
-                            window.open(profileUrl, '_blank');
+                            try { window.open(profileUrl, '_blank'); } catch (_) {}
                         }
                         if (tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
                     });
@@ -308,7 +311,7 @@ async function loadUserData() {
         if (user) {
             const { data, error } = await supabase
                 .from('users')
-                .select('balance')
+                .select('balance, username')
                 .eq('telegram_id', user.id)
                 .single();
             
@@ -316,6 +319,13 @@ async function loadUserData() {
                 score = data.balance;
                 updateScoreDisplay();
                 localStorage.setItem('tapalka_score', score);
+                const tgUsername = user.username;
+                if (!data.username && tgUsername) {
+                    await supabase
+                        .from('users')
+                        .update({ username: tgUsername })
+                        .eq('telegram_id', user.id);
+                }
             } else if (error && error.code === 'PGRST116') {
                 // User doesn't exist, create them
                 await supabase.from('users').insert([
