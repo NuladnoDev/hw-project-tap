@@ -350,25 +350,11 @@ body {
     -webkit-mask: radial-gradient(circle, transparent 46%, black 48%, black 52%, transparent 54%);
     mask: radial-gradient(circle, transparent 46%, black 48%, black 52%, transparent 54%);
     animation: spinSlow 12s linear infinite;
-    opacity: 0.35;
+    opacity: 0.06;
     z-index: 2;
     pointer-events: none;
 }
 
-.character-orbit {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    width: 8px;
-    height: 8px;
-    background: var(--ambient-secondary);
-    border-radius: 50%;
-    box-shadow: 0 0 10px var(--ambient-ring-1);
-    transform-origin: -120px -120px;
-    animation: orbit 6s linear infinite;
-    z-index: 2;
-    pointer-events: none;
-}
 
 .character-stars {
     position: absolute;
@@ -397,10 +383,6 @@ body {
     100% { transform: translate(-50%, -50%) rotate(360deg); }
 }
 
-@keyframes orbit {
-    0% { transform: translate(-50%, -50%) rotate(0deg); }
-    100% { transform: translate(-50%, -50%) rotate(360deg); }
-}
 
 @keyframes twinkle {
     0%, 100% { opacity: 0.2; transform: scale(0.9); }
