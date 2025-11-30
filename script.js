@@ -62,6 +62,9 @@ async function initApp() {
     // 3. Setup Navigation & header actions
     setupNavigation();
     setupHeaderActions();
+    // Apply saved theme
+    const savedTheme = localStorage.getItem('tapalka_theme') || 'dark';
+    applyTheme(savedTheme);
     
     // 4. Start Energy Regen Loop
     startEnergyRegen();
@@ -237,7 +240,9 @@ function setupHeaderActions() {
     }
     if (settingsBtn) {
         settingsBtn.addEventListener('click', () => {
-            loadScreen('screens/upgrade.html');
+            const current = document.body.classList.contains('theme-light') ? 'light' : 'dark';
+            const next = current === 'light' ? 'dark' : 'light';
+            applyTheme(next);
             if (tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
         });
     }
@@ -248,6 +253,12 @@ function setupHeaderActions() {
     };
     if (agreementBtn) agreementBtn.addEventListener('click', openAgreement);
     if (agreementLabel) agreementLabel.addEventListener('click', openAgreement);
+}
+
+function applyTheme(theme) {
+    document.body.classList.toggle('theme-light', theme === 'light');
+    document.body.classList.toggle('theme-dark', theme === 'dark');
+    localStorage.setItem('tapalka_theme', theme);
 }
 
 // Load leaderboard from Supabase
