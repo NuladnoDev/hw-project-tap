@@ -5,6 +5,13 @@
     font-style: normal;
 }
 
+@font-face {
+    font-family: 'VKSansDisplay';
+    src: url('fonts/VKSANSDISPLAYDEMIBOLDFAUX.V100.TTF') format('truetype');
+    font-weight: 600;
+    font-style: normal;
+}
+
 :root {
     --bg-color: #101010;
     --text-color: #ffffff;
@@ -27,7 +34,7 @@
 body {
     background-color: var(--bg-color);
     color: var(--text-color);
-    font-family: 'DrukTextWide', sans-serif;
+    font-family: 'VKSansDisplay', sans-serif;
     height: 100vh;
     overflow: hidden;
     display: flex;
@@ -194,11 +201,13 @@ body {
 .floating-text {
     position: absolute;
     color: white;
-    font-size: 24px;
+    font-family: 'Arial', sans-serif; /* Fallback font to prevent missing glyphs */
+    font-size: 28px;
     font-weight: bold;
     pointer-events: none;
     animation: floatUp 1s ease-out forwards;
     z-index: 100;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
 }
 
 @keyframes floatUp {
