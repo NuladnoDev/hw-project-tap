@@ -57,6 +57,9 @@ body {
     flex: 1;
     overflow-y: auto;
 }
+.content-area.home {
+    overflow: hidden;
+}
 
 /* Score Section */
 .score-container {
@@ -104,7 +107,7 @@ body {
     align-items: center;
     cursor: pointer;
     transition: transform 0.1s cubic-bezier(0.17, 0.67, 0.83, 0.67);
-    margin-top: 24px;
+    margin-top: 15px;
     margin-bottom: 60px;
 }
 
@@ -133,7 +136,7 @@ body {
     position: absolute;
     left: 50%;
     transform: translateX(-50%);
-    bottom: calc(env(safe-area-inset-bottom, 0px) + 80px + 6px);
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 80px + 24px);
     z-index: 5;
 }
 
