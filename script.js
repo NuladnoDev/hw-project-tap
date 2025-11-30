@@ -102,7 +102,6 @@ function attachHomeListeners() {
     if (characterBtn) {
         characterBtn.addEventListener('pointerdown', handleTap);
     }
-    buildCharacterAmbient();
 }
 
 function handleTap(e) {
@@ -137,8 +136,8 @@ function handleTap(e) {
             tg.HapticFeedback.impactOccurred('medium');
         }
 
-        // Effects
-        showTapEffects(e.clientX, e.clientY);
+        // Animation
+        showFloatingText(e.clientX, e.clientY);
         
         // Character Animation
         const charContainer = document.getElementById('character-btn');
@@ -419,76 +418,6 @@ function showFloatingText(x, y) {
     setTimeout(() => {
         floatingText.remove();
     }, 1000);
-}
-
-function showTapEffects(x, y) {
-    if (x === 0 && y === 0) {
-        const btn = document.getElementById('character-btn');
-        if (btn) {
-            const rect = btn.getBoundingClientRect();
-            x = rect.left + rect.width / 2;
-            y = rect.top + rect.height / 2;
-        }
-    }
-
-    // Single sparkle from ambient dots
-    const dots = document.querySelectorAll('#character-stars .ambient-dot');
-    let sx = x, sy = y;
-    if (dots.length) {
-        const dot = dots[Math.floor(Math.random() * dots.length)];
-        const r = dot.getBoundingClientRect();
-        sx = r.left + r.width / 2;
-        sy = r.top + r.height / 2;
-    }
-
-    const sparkle = document.createElement('div');
-    sparkle.className = 'tap-sparkle';
-    const angle = Math.random() * Math.PI * 2;
-    const dist = 40 + Math.random() * 30;
-    const size = 6 + Math.random() * 6;
-    const dx = Math.cos(angle) * dist;
-    const dy = Math.sin(angle) * dist;
-    sparkle.style.left = `${sx}px`;
-    sparkle.style.top = `${sy}px`;
-    sparkle.style.setProperty('--dx', `${dx}px`);
-    sparkle.style.setProperty('--dy', `${dy}px`);
-    sparkle.style.setProperty('--size', `${size}px`);
-    document.body.appendChild(sparkle);
-    setTimeout(() => sparkle.remove(), 700);
-
-    // Floating +1 near origin
-    showFloatingText(sx, sy);
-
-    // Score bounce
-    if (scoreElement) {
-        scoreElement.classList.add('score-pop');
-        setTimeout(() => scoreElement.classList.remove('score-pop'), 360);
-    }
-}
-
-function buildCharacterAmbient() {
-    const starsContainer = document.getElementById('character-stars');
-    const btn = document.getElementById('character-btn');
-    if (!starsContainer || !btn) return;
-    starsContainer.innerHTML = '';
-    const count = 20;
-    for (let i = 0; i < count; i++) {
-        const dot = document.createElement('div');
-        dot.className = 'ambient-dot';
-        const angle = Math.random() * Math.PI * 2;
-        const r = 0.2 + Math.random() * 0.38;
-        const x = 50 + Math.cos(angle) * r * 100 * 0.5;
-        const y = 50 + Math.sin(angle) * r * 100 * 0.5;
-        const size = 4 + Math.random() * 6;
-        const duration = 1800 + Math.random() * 2500;
-        const delay = Math.random() * 1200;
-        dot.style.left = `${x}%`;
-        dot.style.top = `${y}%`;
-        dot.style.setProperty('--size', `${size}px`);
-        dot.style.setProperty('--duration', `${duration}ms`);
-        dot.style.setProperty('--delay', `${Math.floor(delay)}ms`);
-        starsContainer.appendChild(dot);
-    }
 }
 
 // Start
