@@ -279,11 +279,12 @@ async function loadTopUsers() {
                     const hasUsername = typeof u.username === 'string' && u.username.trim().length > 0;
                     const display = hasUsername ? `@${u.username.trim()}` : `@id${u.telegram_id}`;
                     const profileUrl = hasUsername ? `https://t.me/${u.username.trim()}` : `tg://user?id=${u.telegram_id}`;
-                    const avatar = u.avatar_url || 'icons/avatar/nothing/default.svg';
-                    const placeholderClass = u.avatar_url ? '' : 'placeholder';
+                    const avatarHtml = u.avatar_url 
+                        ? `<img class="leaderboard-avatar" src="${u.avatar_url}" alt="avatar">`
+                        : '';
                     item.innerHTML = `
                         <div class="leaderboard-rank">${i + 1}</div>
-                        <div class="leaderboard-user">${display}<img class="leaderboard-avatar ${placeholderClass}" src="${avatar}" alt="avatar"></div>
+                        <div class="leaderboard-user">${display}${avatarHtml}</div>
                         <div class="leaderboard-balance">${Number(u.balance || 0).toLocaleString()}</div>
                     `;
                     if (meId && Number(u.telegram_id) === Number(meId)) {
