@@ -821,7 +821,7 @@ body {
     overflow: hidden;
 }
 .cases-title {
-    font-family: 'Druk', sans-serif;
+    font-family: 'DrukTextWide', sans-serif;
     letter-spacing: 2px;
     font-size: 20px;
 }
@@ -837,7 +837,7 @@ body {
     filter: invert(1);
 }
 .theme-light .cases-icon { filter: none; }
-.cases-news-text { font-size: 12px; }
+.cases-news-text { font-size: 12px; } 
 .cases-news-btn { padding: 4px 10px; font-size: 11px; }
 .cases-sub {
     font-size: 12px;
