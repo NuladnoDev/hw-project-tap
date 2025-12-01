@@ -813,10 +813,24 @@ body {
     overflow: hidden;
 }
 .cases-title {
-    font-family: 'DrukTextWide', sans-serif;
+    font-family: 'Druk', sans-serif;
     letter-spacing: 2px;
     font-size: 20px;
 }
+.cases-news-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.cases-icon {
+    width: 16px;
+    height: 16px;
+    object-fit: contain;
+    filter: invert(1);
+}
+.theme-light .cases-icon { filter: none; }
+.cases-news-text { font-size: 12px; }
+.cases-news-btn { padding: 4px 10px; font-size: 11px; }
 .cases-sub {
     font-size: 12px;
     color: #aaa;
