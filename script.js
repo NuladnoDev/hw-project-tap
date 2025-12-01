@@ -23,6 +23,10 @@ const routes = {
     'nav-skins': 'screens/skins.html'
 };
 
+let homeScrollLockHandler = null;
+let homeWheelLockHandler = null;
+let homeTouchLockHandler = null;
+
 // Load Screen Function
 async function loadScreen(screenUrl) {
     try {
@@ -37,6 +41,25 @@ async function loadScreen(screenUrl) {
             attachHomeListeners();
             updateEnergyDisplay(); // Initial update for home screen
             updateCharacterState(); // Ensure correct state
+            contentArea.scrollTop = 0;
+            if (!homeScrollLockHandler) {
+                homeScrollLockHandler = () => {
+                    if (contentArea.classList.contains('home')) contentArea.scrollTop = 0;
+                };
+                contentArea.addEventListener('scroll', homeScrollLockHandler, { passive: true });
+            }
+            if (!homeWheelLockHandler) {
+                homeWheelLockHandler = (e) => {
+                    if (contentArea.classList.contains('home')) e.preventDefault();
+                };
+                contentArea.addEventListener('wheel', homeWheelLockHandler, { passive: false });
+            }
+            if (!homeTouchLockHandler) {
+                homeTouchLockHandler = (e) => {
+                    if (contentArea.classList.contains('home')) e.preventDefault();
+                };
+                contentArea.addEventListener('touchmove', homeTouchLockHandler, { passive: false });
+            }
         } else if (screenUrl.includes('upgrade.html')) {
             contentArea.classList.remove('home');
             attachUpgradeListeners();
