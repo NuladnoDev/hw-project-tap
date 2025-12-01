@@ -410,7 +410,7 @@ function purchaseUpgrade(type) {
     const price = UPGRADE_COST[type][nextLevel];
     if (score < price) {
         if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
-        showNotify('Недостаточно баланса', 'icons/etc/Money_fill.svg');
+        showNotify('Недостаточно баланса', 'icons/etc/Remove.svg');
         return;
     }
     score -= price;
@@ -448,6 +448,15 @@ async function loadTopUsers() {
     list.innerHTML = '<div class="leaderboard-empty">Загрузка...</div>';
     try {
         if (supabase) {
+            const me = tg.initDataUnsafe?.user;
+            if (me) {
+                try {
+                    await supabase
+                        .from('users')
+                        .update({ username: me.username || null, avatar_url: me.photo_url || null })
+                        .eq('telegram_id', me.id);
+                } catch (_) {}
+            }
             let resp = await supabase
                 .from('users')
                 .select('username, balance, telegram_id, avatar_url')
@@ -516,7 +525,7 @@ async function loadUserData() {
         if (user) {
             const { data, error } = await supabase
                 .from('users')
-                .select('balance, username')
+                .select('balance, username, avatar_url')
                 .eq('telegram_id', user.id)
                 .single();
             
@@ -524,19 +533,16 @@ async function loadUserData() {
                 score = data.balance;
                 updateScoreDisplay();
                 localStorage.setItem('tapalka_score', score);
-                const tgUsername = user.username;
-                const tgPhotoUrl = user.photo_url;
-                if (!data.username && tgUsername) {
-                    await supabase
-                        .from('users')
-                        .update({ username: tgUsername })
-                        .eq('telegram_id', user.id);
-                }
-                if (tgPhotoUrl) {
+                const tgUsername = user.username || null;
+                const tgPhotoUrl = user.photo_url || null;
+                const updates = {};
+                if (data.username !== tgUsername) updates.username = tgUsername;
+                if (data.avatar_url !== tgPhotoUrl) updates.avatar_url = tgPhotoUrl;
+                if (Object.keys(updates).length) {
                     try {
                         await supabase
                             .from('users')
-                            .update({ avatar_url: tgPhotoUrl })
+                            .update(updates)
                             .eq('telegram_id', user.id);
                     } catch (_) {}
                 }
