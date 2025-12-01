@@ -568,6 +568,30 @@ body {
     font-size: 14px;
     margin-bottom: 5px;
 }
+.level-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 6px;
+    padding: 2px 6px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 700;
+    color: #fff;
+    background: #ffae00;
+}
+.badge-max {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px 6px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 800;
+    color: #fff;
+    background: #ffae00;
+    margin-right: 6px;
+}
 
 .skin-meta {
     font-size: 11px;
@@ -589,6 +613,14 @@ body {
     font-weight: bold;
     font-size: 12px;
     cursor: pointer;
+}
+.upgrade-btn:disabled {
+    background: #333;
+    color: #fff;
+}
+.theme-light .upgrade-btn:disabled {
+    background: #e9edf3;
+    color: #0a0f1a;
 }
 
 .skin-btn:disabled {

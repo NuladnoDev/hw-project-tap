@@ -322,10 +322,10 @@ function renderUpgradeUI() {
         const levels = item.querySelectorAll('.upgrade-levels .level-box');
         const currentLevel = state[type];
         const nextLevel = Math.min(currentLevel + 1, 3);
-        if (title) title.innerText = `${mapTitle(type)} (${nextLevel})`;
+        if (title) title.innerHTML = `${mapTitle(type)} <span class="level-badge">${nextLevel}</span>`;
         if (desc) desc.innerText = mapDescription(type, nextLevel);
         if (currentLevel >= 3) {
-            btn.innerText = 'макс';
+            btn.innerHTML = '<span class="badge-max">MAX</span> уровень';
             btn.disabled = true;
         } else {
             const price = UPGRADE_COST[type][nextLevel];
