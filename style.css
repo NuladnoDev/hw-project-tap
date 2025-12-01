@@ -452,6 +452,13 @@ body {
     align-items: center;
     overflow: hidden;
 }
+.upgrade-icon img {
+    width: 70%;
+    height: 70%;
+    object-fit: contain;
+    filter: brightness(0) invert(1);
+}
+.theme-light .upgrade-icon img { filter: none; }
 .theme-light .upgrade-item,
 .theme-light .skin-card,
 .theme-light .leaderboard-item {
@@ -468,6 +475,31 @@ body {
     gap: 12px;
     padding-bottom: 20px;
 }
+
+.upgrade-levels {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 8px;
+    border: 1px solid #2b2b2b;
+    border-radius: 12px;
+    background: #171717;
+    margin-top: 6px;
+    width: max-content;
+}
+.theme-light .upgrade-levels { border-color: #d8e1ef; background: #eef3fb; }
+.level-box {
+    width: 16px;
+    height: 10px;
+    border-radius: 4px;
+    background: #2a2a2a;
+    opacity: 0.5;
+}
+.level-box.active { background: #ffae00; opacity: 1; }
+.level-box.next { background: #2a2a2a; opacity: 0.5; box-shadow: none; }
+.theme-light .level-box { background: #cfd7e3; }
+.theme-light .level-box.active { background: #ffae00; }
+.theme-light .level-box.next { background: #cfd7e3; box-shadow: none; opacity: 0.5; }
 
 .leaderboard-rank {
     width: 28px;

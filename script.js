@@ -9,7 +9,9 @@ let score = 0;
 let maxEnergy = 30;
 let currentEnergy = maxEnergy;
 let isExhausted = false;
-const REGEN_RATE = maxEnergy / 10; // Restore full energy in 10 seconds
+let regenMultiplier = 1;
+const BASE_REGEN_PER_SEC = 3;
+let tapPower = 1;
 
 const scoreElement = document.getElementById('score');
 const contentArea = document.getElementById('app-content');
@@ -37,7 +39,7 @@ async function loadScreen(screenUrl) {
             updateCharacterState(); // Ensure correct state
         } else if (screenUrl.includes('upgrade.html')) {
             contentArea.classList.remove('home');
-            // attachUpgradeListeners();
+            attachUpgradeListeners();
         } else if (screenUrl.includes('skins.html')) {
             contentArea.classList.remove('home');
             attachSkinsListeners();
@@ -65,6 +67,7 @@ async function initApp() {
     // Apply saved theme
     const savedTheme = localStorage.getItem('tapalka_theme') || 'dark';
     applyTheme(savedTheme);
+    applyUpgradesFromState();
     
     // 4. Start Energy Regen Loop
     startEnergyRegen();
@@ -127,7 +130,7 @@ function handleTap(e) {
         updateEnergyDisplay();
         
         // Increment Score
-        score++;
+        score += tapPower;
         updateScoreDisplay();
         saveScoreDebounced(); // Save to DB
         
@@ -154,7 +157,7 @@ function handleTap(e) {
 function startEnergyRegen() {
     setInterval(() => {
         if (currentEnergy < maxEnergy) {
-            currentEnergy += REGEN_RATE * 0.1; // 0.1s interval
+            currentEnergy += BASE_REGEN_PER_SEC * regenMultiplier * 0.1;
             
             // Check exhaustion recovery
             if (isExhausted && currentEnergy >= maxEnergy / 2) {
@@ -259,6 +262,127 @@ function applyTheme(theme) {
     document.body.classList.toggle('theme-light', theme === 'light');
     document.body.classList.toggle('theme-dark', theme === 'dark');
     localStorage.setItem('tapalka_theme', theme);
+}
+
+const UPGRADE_BASE = {
+    energy: {1: 30, 2: 60, 3: 100},
+    speed: {1: 1.0, 2: 1.5, 3: 2.5},
+    multitap: {1: 1, 2: 2, 3: 4}
+};
+
+const UPGRADE_COST = {
+    energy: {2: 500, 3: 2500},
+    speed: {2: 1000, 3: 5000},
+    multitap: {2: 2000, 3: 10000}
+};
+
+function getUpgradeState() {
+    try {
+        const raw = localStorage.getItem('tapalka_upgrades');
+        if (raw) return JSON.parse(raw);
+    } catch (_) {}
+    return { energy: 1, speed: 1, multitap: 1 };
+}
+
+function saveUpgradeState(state) {
+    localStorage.setItem('tapalka_upgrades', JSON.stringify(state));
+}
+
+function applyUpgradesFromState() {
+    const state = getUpgradeState();
+    maxEnergy = UPGRADE_BASE.energy[state.energy];
+    regenMultiplier = UPGRADE_BASE.speed[state.speed];
+    tapPower = UPGRADE_BASE.multitap[state.multitap];
+    if (currentEnergy > maxEnergy) currentEnergy = maxEnergy;
+    updateEnergyDisplay();
+}
+
+function attachUpgradeListeners() {
+    applyUpgradesFromState();
+    renderUpgradeUI();
+    const buttons = contentArea.querySelectorAll('.upgrade-item .upgrade-btn');
+    buttons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const parent = btn.closest('.upgrade-item');
+            if (!parent) return;
+            const type = parent.dataset.upgrade;
+            purchaseUpgrade(type);
+        });
+    });
+}
+
+function renderUpgradeUI() {
+    const state = getUpgradeState();
+    ['energy','speed','multitap'].forEach(type => {
+        const item = contentArea.querySelector(`.upgrade-item[data-upgrade="${type}"]`);
+        if (!item) return;
+        const title = item.querySelector('.upgrade-info h3');
+        const desc = item.querySelector('.upgrade-info p');
+        const btn = item.querySelector('.upgrade-btn');
+        const levels = item.querySelectorAll('.upgrade-levels .level-box');
+        const currentLevel = state[type];
+        const nextLevel = Math.min(currentLevel + 1, 3);
+        if (title) title.innerText = `${mapTitle(type)} (${nextLevel})`;
+        if (desc) desc.innerText = mapDescription(type, nextLevel);
+        if (currentLevel >= 3) {
+            btn.innerText = 'макс';
+            btn.disabled = true;
+        } else {
+            const price = UPGRADE_COST[type][nextLevel];
+            btn.innerText = `купить за ${price.toLocaleString()}`;
+            btn.disabled = false;
+        }
+        if (levels && levels.length === 3) {
+            levels.forEach((el, idx) => {
+                el.classList.remove('active','next');
+                if (idx < currentLevel) el.classList.add('active');
+                // остальные два остаются серыми
+            });
+        }
+    });
+}
+
+function mapTitle(type) {
+    if (type === 'energy') return 'Энергия';
+    if (type === 'speed') return 'Скорость';
+    if (type === 'multitap') return 'Мультитап';
+    return type;
+}
+
+function mapDescription(type, level) {
+    if (type === 'energy') {
+        const target = UPGRADE_BASE.energy[level];
+        return `лимит ${target}`;
+    }
+    if (type === 'speed') {
+        const mult = UPGRADE_BASE.speed[level];
+        return `восстановление x${mult}`;
+    }
+    if (type === 'multitap') {
+        const val = UPGRADE_BASE.multitap[level];
+        return `за тап +${val}`;
+    }
+    return '';
+}
+
+function purchaseUpgrade(type) {
+    const state = getUpgradeState();
+    const currentLevel = state[type];
+    if (currentLevel >= 3) return;
+    const nextLevel = currentLevel + 1;
+    const price = UPGRADE_COST[type][nextLevel];
+    if (score < price) {
+        if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
+        return;
+    }
+    score -= price;
+    updateScoreDisplay();
+    saveScoreDebounced();
+    state[type] = nextLevel;
+    saveUpgradeState(state);
+    applyUpgradesFromState();
+    renderUpgradeUI();
+    if (tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
 }
 
 // Load leaderboard from Supabase
@@ -399,7 +523,7 @@ function saveScoreDebounced() {
 function showFloatingText(x, y) {
     const floatingText = document.createElement('div');
     floatingText.className = 'floating-text';
-    floatingText.innerText = '+1';
+    floatingText.innerText = `+${tapPower}`;
     
     if (x === 0 && y === 0) {
         const btn = document.getElementById('character-btn');
