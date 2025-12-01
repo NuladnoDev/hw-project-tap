@@ -93,9 +93,21 @@ body {
     opacity: 0;
     transform: translateY(-10px);
     transition: opacity 0.18s ease, transform 0.18s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
 }
 .notify-banner.show { opacity: 1; transform: translateY(0); }
 .theme-light .notify-banner { background: rgba(10,15,26,0.9); }
+
+.notify-icon {
+    width: 16px;
+    height: 16px;
+    object-fit: contain;
+    filter: invert(1);
+    opacity: 0.9;
+}
+.theme-light .notify-icon { filter: none; }
 
 /* Animated background */
 .app-container::before {

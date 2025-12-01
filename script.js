@@ -410,7 +410,7 @@ function purchaseUpgrade(type) {
     const price = UPGRADE_COST[type][nextLevel];
     if (score < price) {
         if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
-        showNotify('Недостаточно баланса');
+        showNotify('Недостаточно баланса', 'icons/etc/Money_fill.svg');
         return;
     }
     score -= price;
@@ -424,7 +424,7 @@ function purchaseUpgrade(type) {
 }
 
 let notifyLastTs = 0;
-function showNotify(text) {
+function showNotify(text, icon) {
     const root = document.getElementById('notify-root');
     if (!root) return;
     const now = Date.now();
@@ -432,7 +432,7 @@ function showNotify(text) {
     notifyLastTs = now;
     const el = document.createElement('div');
     el.className = 'notify-banner';
-    el.innerText = text;
+    el.innerHTML = icon ? `<img class="notify-icon" src="${icon}" alt=""> <span>${text}</span>` : text;
     root.appendChild(el);
     requestAnimationFrame(() => el.classList.add('show'));
     setTimeout(() => {
