@@ -357,9 +357,9 @@ function renderUpgradeUI() {
         }
         if (levels && levels.length === 3) {
             levels.forEach((el, idx) => {
+                el.textContent = (idx + 1);
                 el.classList.remove('active','next');
                 if (idx < currentLevel) el.classList.add('active');
-                // остальные два остаются серыми
             });
         }
     });
