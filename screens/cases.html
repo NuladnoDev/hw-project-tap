@@ -1,0 +1,45 @@
+<div class="screen-container">
+    <h2>КЕЙСЫ</h2>
+    <p class="screen-subtitle">кейс можно открыть раз в 30 сек</p>
+    <div class="case-list">
+        <div class="case-card" data-case="daily" data-cooldown="30" data-min="100" data-max="300" data-type="money">
+            <div class="case-preview"><img src="icons/cases/time_day_case.png" alt="Daily"></div>
+            <h3 class="case-title">Ежедневный</h3>
+            <div class="case-drops">
+                <div class="case-range">от 100 до 300</div>
+                <div class="case-info">только деньги</div>
+            </div>
+            <button class="case-btn">открыть</button>
+        </div>
+        <div class="case-card" data-case="standard" data-cooldown="30" data-min="200" data-max="600" data-type="mixed">
+            <div class="case-preview"><img src="icons/cases/default_case.png" alt="Standard"></div>
+            <h3 class="case-title">Стандарт</h3>
+            <div class="case-drops">
+                <div class="case-range">от 200 до 600</div>
+                <div class="case-info">деньги и скины</div>
+            </div>
+            <button class="case-btn">открыть</button>
+        </div>
+        <div class="case-card" data-case="premium" data-cooldown="30" data-min="400" data-max="1200" data-type="mixed">
+            <div class="case-preview"><img src="icons/cases/iron_case.png" alt="Premium"></div>
+            <h3 class="case-title">Премиум</h3>
+            <div class="case-drops">
+                <div class="case-range">от 400 до 1200</div>
+                <div class="case-info">деньги и редкие скины</div>
+            </div>
+            <button class="case-btn">открыть</button>
+        </div>
+        <div class="case-card" data-case="legend" data-cooldown="30" data-min="800" data-max="2500" data-type="mixed">
+            <div class="case-preview"><img src="icons/cases/ultra_case.png" alt="Legend"></div>
+            <h3 class="case-title">Легендарный</h3>
+            <div class="case-drops">
+                <div class="case-range">от 800 до 2500</div>
+                <div class="case-info">деньги и лучшие скины</div>
+            </div>
+            <button class="case-btn">открыть</button>
+        </div>
+    </div>
+    <div id="case-modal-backdrop" class="case-modal-backdrop" hidden>
+        <div class="case-modal"></div>
+    </div>
+</div>

@@ -12,6 +12,11 @@ let isExhausted = false;
 let regenMultiplier = 1;
 const BASE_REGEN_PER_SEC = 3;
 let tapPower = 1;
+const ENERGY_KEY = 'tapalka_energy_current';
+let lastEnergySaveTs = 0;
+let incomePerMin = 50;
+let passiveTimerId = null;
+let passiveSaveTs = 0;
 
 const scoreElement = document.getElementById('score');
 const contentArea = document.getElementById('app-content');
@@ -20,7 +25,8 @@ const contentArea = document.getElementById('app-content');
 const routes = {
     'nav-home': 'screens/home.html',
     'nav-upgrade': 'screens/upgrade.html',
-    'nav-skins': 'screens/skins.html'
+    'nav-skins': 'screens/skins.html',
+    'nav-cases': null
 };
 
 let homeScrollLockHandler = null;
@@ -66,6 +72,9 @@ async function loadScreen(screenUrl) {
         } else if (screenUrl.includes('skins.html')) {
             contentArea.classList.remove('home');
             attachSkinsListeners();
+        } else if (screenUrl.includes('cases.html')) {
+            contentArea.classList.remove('home');
+            attachCasesListeners();
         } else if (screenUrl.includes('top_users.html')) {
             contentArea.classList.remove('home');
             loadTopUsers();
@@ -78,22 +87,21 @@ async function loadScreen(screenUrl) {
 
 // Initialize App
 async function initApp() {
-    // 1. Load User Data from Supabase (or local fallback)
     await loadUserData();
-    
-    // 2. Load Home Screen by default
-    await loadScreen(routes['nav-home']);
-    
-    // 3. Setup Navigation & header actions
-    setupNavigation();
-    setupHeaderActions();
-    // Apply saved theme
     const savedTheme = localStorage.getItem('tapalka_theme') || 'dark';
     applyTheme(savedTheme);
     applyUpgradesFromState();
-    
-    // 4. Start Energy Regen Loop
+    const savedEnergyRaw = localStorage.getItem(ENERGY_KEY);
+    const savedEnergy = savedEnergyRaw ? Number(savedEnergyRaw) : NaN;
+    currentEnergy = Number.isFinite(savedEnergy)
+        ? Math.min(Math.max(0, savedEnergy), maxEnergy)
+        : maxEnergy;
+    await loadScreen(routes['nav-home']);
+    setupNavigation();
+    setupHeaderActions();
+    updateEnergyDisplay();
     startEnergyRegen();
+    startPassiveIncomeTick();
 }
 
 // Navigation Setup
@@ -103,6 +111,11 @@ function setupNavigation() {
     navItems.forEach(item => {
         item.addEventListener('click', () => {
             const routeKey = item.id;
+            if (routeKey === 'nav-cases') {
+                showNotify('Кейсы пока не доступны');
+                if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
+                return;
+            }
             const screenUrl = routes[routeKey];
             
             if (screenUrl) {
@@ -191,6 +204,11 @@ function startEnergyRegen() {
             
             if (currentEnergy > maxEnergy) currentEnergy = maxEnergy;
             updateEnergyDisplay();
+            const now = Date.now();
+            if (now - lastEnergySaveTs > 1000) {
+                localStorage.setItem(ENERGY_KEY, String(Math.floor(currentEnergy)));
+                lastEnergySaveTs = now;
+            }
         }
     }, 100);
 }
@@ -251,6 +269,147 @@ function attachSkinsListeners() {
             // Logic to save selected skin would go here
         });
     });
+}
+
+function attachCasesListeners() {
+    const cards = contentArea.querySelectorAll('.case-card');
+    cards.forEach(card => initCaseCard(card));
+    const backdrop = contentArea.querySelector('#case-modal-backdrop');
+    if (backdrop) {
+        backdrop.addEventListener('click', (e) => {
+            const modal = backdrop.querySelector('.case-modal');
+            if (!modal) return;
+            if (!modal.contains(e.target)) hideCaseModal();
+        });
+    }
+}
+
+function initCaseCard(card) {
+    const id = card.dataset.case;
+    const btn = card.querySelector('.case-btn');
+    const cooldown = Number(card.dataset.cooldown || 30);
+    const min = Number(card.dataset.min || 0);
+    const max = Number(card.dataset.max || 0);
+    const type = card.dataset.type || 'money';
+    const key = `case_last_${id}`;
+    const last = Number(localStorage.getItem(key) || 0);
+    const now = Date.now();
+    const remain = Math.max(0, Math.ceil((last + cooldown * 1000 - now) / 1000));
+    if (remain > 0) {
+        setCaseBtnCountdown(btn, remain);
+        startCaseCooldownTimer(btn, key, cooldown);
+        btn.disabled = true;
+    } else {
+        btn.innerText = 'открыть';
+        btn.disabled = false;
+    }
+    btn.addEventListener('click', () => {
+        const lastOpen = Number(localStorage.getItem(key) || 0);
+        const nowTs = Date.now();
+        if (nowTs - lastOpen < cooldown * 1000) return;
+        showCasePreview(card, { key, cooldown, min, max, type });
+    });
+}
+
+function setCaseBtnCountdown(btn, sec) {
+    const m = Math.floor(sec / 60);
+    const s = sec % 60;
+    btn.innerText = `${m}:${String(s).padStart(2, '0')}`;
+}
+
+function startCaseCooldownTimer(btn, key, cooldown) {
+    const timer = setInterval(() => {
+        const last = Number(localStorage.getItem(key) || 0);
+        const now = Date.now();
+        const remain = Math.max(0, Math.ceil((last + cooldown * 1000 - now) / 1000));
+        if (remain <= 0) {
+            clearInterval(timer);
+            btn.innerText = 'открыть';
+            btn.disabled = false;
+        } else {
+            setCaseBtnCountdown(btn, remain);
+        }
+    }, 250);
+}
+
+function showCasePreview(card, meta) {
+    const backdrop = contentArea.querySelector('#case-modal-backdrop');
+    if (!backdrop) return;
+    const modal = backdrop.querySelector('.case-modal');
+    const img = card.querySelector('.case-preview img');
+    const title = card.querySelector('.case-title')?.innerText || 'Кейс';
+    const skins = getCaseSkinsFor(card.dataset.case);
+    const chips = skins.map(s => `<span class="skin-chip ${skinChipClass(s)}">${s}</span>`).join('');
+    modal.innerHTML = `
+        <div class="case-modal-header">
+            <img class="case-modal-icon" src="${img?.src || ''}" alt="${title}">
+            <div class="case-modal-title">${title}</div>
+        </div>
+        <div class="case-modal-body">
+            <div class="case-modal-range"><img src="icons/etc/Money_fill.svg" alt=""> <span>от ${meta.min} до ${meta.max}</span></div>
+            <div class="case-modal-skins">${chips}</div>
+        </div>
+        <div class="case-modal-actions">
+            <button id="case-confirm" class="case-btn">открыть</button>
+            <button id="case-cancel" class="skin-btn">закрыть</button>
+        </div>
+    `;
+    backdrop.hidden = false;
+    const confirm = modal.querySelector('#case-confirm');
+    const cancel = modal.querySelector('#case-cancel');
+    const btn = card.querySelector('.case-btn');
+    confirm?.addEventListener('click', () => {
+        localStorage.setItem(meta.key, String(Date.now()));
+        startCaseCooldownTimer(btn, meta.key, meta.cooldown);
+        btn.disabled = true;
+        grantCaseReward(meta.type, meta.min, meta.max, card.dataset.case);
+        hideCaseModal();
+    });
+    cancel?.addEventListener('click', hideCaseModal);
+}
+
+function hideCaseModal() {
+    const backdrop = contentArea.querySelector('#case-modal-backdrop');
+    if (backdrop) backdrop.hidden = true;
+}
+
+function grantCaseReward(type, min, max, id) {
+    if (type === 'money') {
+        const amount = Math.floor(min + Math.random() * (max - min + 1));
+        score += amount;
+        updateScoreDisplay();
+        saveScoreDebounced();
+        showNotify(`+${amount}`, 'icons/etc/Money_fill.svg');
+        return;
+    }
+    const roll = Math.random();
+    const moneyChance = id === 'legend' ? 0.5 : id === 'premium' ? 0.6 : 0.7;
+    if (roll < moneyChance) {
+        const amount = Math.floor(min + Math.random() * (max - min + 1));
+        score += amount;
+        updateScoreDisplay();
+        saveScoreDebounced();
+        showNotify(`+${amount}`, 'icons/etc/Money_fill.svg');
+    } else {
+        const skins = getCaseSkinsFor(id);
+        const picked = skins[Math.floor(Math.random() * skins.length)];
+        showNotify(`выпал скин: ${picked}`);
+    }
+}
+
+function getCaseSkinsFor(id) {
+    if (id === 'standard') return ['Базовый','Продвинутый'];
+    if (id === 'premium') return ['Продвинутый','PRO'];
+    if (id === 'legend') return ['PRO','ULTRA'];
+    return ['Базовый'];
+}
+
+function skinChipClass(name) {
+    if (name === 'Базовый') return 'chip-base';
+    if (name === 'Продвинутый') return 'chip-adv';
+    if (name === 'PRO') return 'chip-pro';
+    if (name === 'ULTRA') return 'chip-ultra';
+    return 'chip-base';
 }
 
 // Header buttons (top, settings, agreement)
@@ -523,16 +682,36 @@ async function loadUserData() {
     if (supabase) {
         const user = tg.initDataUnsafe?.user;
         if (user) {
-            const { data, error } = await supabase
+            let { data, error } = await supabase
                 .from('users')
-                .select('balance, username, avatar_url')
+                .select('balance, username, avatar_url, income_per_min, last_income_at')
                 .eq('telegram_id', user.id)
                 .single();
             
+            if (!data && error) {
+                const resp2 = await supabase
+                    .from('users')
+                    .select('balance, username, avatar_url')
+                    .eq('telegram_id', user.id)
+                    .single();
+                data = resp2.data;
+                error = resp2.error;
+            }
+            
             if (data) {
-                score = data.balance;
+                incomePerMin = Number(data.income_per_min || 50);
+                const now = Date.now();
+                const last = data.last_income_at ? new Date(data.last_income_at).getTime() : now;
+                const mins = Math.floor((now - last) / 60000);
+                score = Number(data.balance || 0) + Math.max(0, mins) * incomePerMin;
                 updateScoreDisplay();
                 localStorage.setItem('tapalka_score', score);
+                try {
+                    await supabase
+                        .from('users')
+                        .update({ balance: score, last_income_at: new Date(now).toISOString(), income_per_min: incomePerMin })
+                        .eq('telegram_id', user.id);
+                } catch (_) {}
                 const tgUsername = user.username || null;
                 const tgPhotoUrl = user.photo_url || null;
                 const updates = {};
@@ -547,9 +726,8 @@ async function loadUserData() {
                     } catch (_) {}
                 }
             } else if (error && error.code === 'PGRST116') {
-                // User doesn't exist, create them
                 await supabase.from('users').insert([
-                    { telegram_id: user.id, username: user.username, balance: score, avatar_url: user.photo_url }
+                    { telegram_id: user.id, username: user.username, balance: score, avatar_url: user.photo_url, income_per_min: incomePerMin, last_income_at: new Date().toISOString() }
                 ]);
             }
         }
@@ -572,13 +750,39 @@ function saveScoreDebounced() {
         if (supabase) {
             const user = tg.initDataUnsafe?.user;
             if (user) {
+                const nowIso = new Date().toISOString();
                 await supabase
                     .from('users')
-                    .update({ balance: score })
+                    .update({ balance: score, last_income_at: nowIso })
                     .eq('telegram_id', user.id);
             }
         }
     }, 1000); // Sync every 1 second of inactivity
+}
+
+function startPassiveIncomeTick() {
+    if (passiveTimerId) clearInterval(passiveTimerId);
+    const msPerCoin = incomePerMin > 0 ? Math.max(200, Math.floor(60000 / incomePerMin)) : 0;
+    if (msPerCoin > 0) {
+        passiveTimerId = setInterval(async () => {
+            score += 1;
+            updateScoreDisplay();
+            localStorage.setItem('tapalka_score', score);
+            const now = Date.now();
+            if (supabase) {
+                const user = tg.initDataUnsafe?.user;
+                if (user && now - passiveSaveTs >= 60000) {
+                    passiveSaveTs = now;
+                    try {
+                        await supabase
+                            .from('users')
+                            .update({ balance: score, last_income_at: new Date().toISOString() })
+                            .eq('telegram_id', user.id);
+                    } catch (_) {}
+                }
+            }
+        }, msPerCoin);
+    }
 }
 
 // Helper: Floating Text
