@@ -345,7 +345,7 @@ function renderUpgradeUI() {
         const levels = item.querySelectorAll('.upgrade-levels .level-box');
         const currentLevel = state[type];
         const nextLevel = Math.min(currentLevel + 1, 3);
-        if (title) title.innerHTML = `${mapTitle(type)} <span class="level-badge">${nextLevel}</span>`;
+        if (title) title.innerHTML = `${mapTitle(type)} <span class="level-badge">${currentLevel}</span>`;
         if (desc) desc.innerText = mapDescription(type, nextLevel);
         if (currentLevel >= 3) {
             btn.innerHTML = '<span class="badge-max">MAX</span> уровень';
@@ -357,7 +357,7 @@ function renderUpgradeUI() {
         }
         if (levels && levels.length === 3) {
             levels.forEach((el, idx) => {
-                el.textContent = (idx + 1);
+                el.textContent = '';
                 el.classList.remove('active','next');
                 if (idx < currentLevel) el.classList.add('active');
             });
