@@ -495,6 +495,12 @@ body {
     border: 1px solid #dddddd;
     box-shadow: inset 0 1px 0 rgba(0,0,0,0.04);
 }
+.upgrade-item.max { border-color: #ffae00; box-shadow: 0 0 0 1px rgba(255,174,0,0.18), inset 0 1px 0 rgba(255,174,0,0.1); }
+.theme-light .upgrade-item.max { border-color: #ffae00; box-shadow: 0 0 0 1px rgba(255,174,0,0.25), inset 0 1px 0 rgba(255,174,0,0.12); }
+.upgrade-levels.max { border-color: #4a2d00; }
+.theme-light .upgrade-levels.max { border-color: #ffcf66; }
+.upgrade-btn.max { background: #222; color: #fff; border: 1px solid #4a2d00; }
+.theme-light .upgrade-btn.max { background: #e9edf3; color: #0a0f1a; border: 1px solid #ffcf66; }
 .theme-light .upgrade-icon,
 .theme-light .skin-preview { background: #e6e6e6; }
 

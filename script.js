@@ -330,6 +330,12 @@ function attachUpgradeListeners() {
             const parent = btn.closest('.upgrade-item');
             if (!parent) return;
             const type = parent.dataset.upgrade;
+            const state = getUpgradeState();
+            if (state[type] >= 3) {
+                if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
+                showNotify('уже MAX уровень');
+                return;
+            }
             purchaseUpgrade(type);
         });
     });
@@ -348,13 +354,20 @@ function renderUpgradeUI() {
         const nextLevel = Math.min(currentLevel + 1, 3);
         if (title) title.innerHTML = `${mapTitle(type)} <span class="level-badge">${currentLevel}</span>`;
         if (desc) desc.innerText = mapDescription(type, nextLevel);
+        item.classList.toggle('max', currentLevel >= 3);
+        const levelsWrap = item.querySelector('.upgrade-levels');
+        if (levelsWrap) levelsWrap.classList.toggle('max', currentLevel >= 3);
         if (currentLevel >= 3) {
             btn.innerHTML = '<span class="badge-max">MAX</span> уровень';
-            btn.disabled = true;
+            btn.classList.add('max');
+            btn.disabled = false;
+            btn.dataset.max = 'true';
         } else {
             const price = UPGRADE_COST[type][nextLevel];
             btn.innerText = `купить за ${price.toLocaleString()}`;
             btn.disabled = false;
+            btn.classList.remove('max');
+            btn.dataset.max = 'false';
         }
         if (levels && levels.length === 3) {
             levels.forEach((el, idx) => {
