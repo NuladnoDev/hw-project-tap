@@ -137,6 +137,7 @@ function handleTap(e) {
         if (tg.HapticFeedback) {
             tg.HapticFeedback.notificationOccurred('error');
         }
+        showNotify('Недостаточно энергии');
         return;
     }
 
@@ -396,6 +397,7 @@ function purchaseUpgrade(type) {
     const price = UPGRADE_COST[type][nextLevel];
     if (score < price) {
         if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
+        showNotify('Недостаточно баланса');
         return;
     }
     score -= price;
@@ -406,6 +408,24 @@ function purchaseUpgrade(type) {
     applyUpgradesFromState();
     renderUpgradeUI();
     if (tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
+}
+
+let notifyLastTs = 0;
+function showNotify(text) {
+    const root = document.getElementById('notify-root');
+    if (!root) return;
+    const now = Date.now();
+    if (now - notifyLastTs < 800) return;
+    notifyLastTs = now;
+    const el = document.createElement('div');
+    el.className = 'notify-banner';
+    el.innerText = text;
+    root.appendChild(el);
+    requestAnimationFrame(() => el.classList.add('show'));
+    setTimeout(() => {
+        el.classList.remove('show');
+        setTimeout(() => el.remove(), 200);
+    }, 1400);
 }
 
 // Load leaderboard from Supabase
