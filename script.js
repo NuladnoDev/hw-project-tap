@@ -25,9 +25,19 @@ const contentArea = document.getElementById('app-content');
 const routes = {
     'nav-home': 'screens/home.html',
     'nav-upgrade': 'screens/upgrade.html',
+    'nav-farm': 'screens/farm.html',
     'nav-skins': 'screens/skins.html',
     'nav-cases': null
 };
+
+// --- WORKER DATA ---
+const WORKERS = {
+    intern: { income: 100, duration: 3600, price: 500 },
+    expert: { income: 300, duration: 10800, price: 2500 },
+    manager: { income: 1000, duration: 28800, price: 10000 }
+};
+
+let activeWorkers = {}; // { intern: endTimestamp, ... }
 
 let homeScrollLockHandler = null;
 let homeWheelLockHandler = null;
@@ -35,8 +45,9 @@ let homeTouchLockHandler = null;
 
 // Load Screen Function
 async function loadScreen(screenUrl) {
+    if (!screenUrl) return;
     try {
-        const response = await fetch(screenUrl);
+        const response = await fetch(`${screenUrl}?v=5.2`);
         if (!response.ok) throw new Error('Screen not found');
         const html = await response.text();
         contentArea.innerHTML = html;
@@ -72,6 +83,9 @@ async function loadScreen(screenUrl) {
         } else if (screenUrl.includes('skins.html')) {
             contentArea.classList.remove('home');
             attachSkinsListeners();
+        } else if (screenUrl.includes('farm.html')) {
+            contentArea.classList.remove('home');
+            attachFarmListeners();
         } else if (screenUrl.includes('cases.html')) {
             contentArea.classList.remove('home');
             attachCasesListeners();
@@ -88,6 +102,7 @@ async function loadScreen(screenUrl) {
 // Initialize App
 async function initApp() {
     await loadUserData();
+    loadWorkerState(); // Load active workers from local storage
     const savedTheme = localStorage.getItem('tapalka_theme') || 'dark';
     applyTheme(savedTheme);
     applyUpgradesFromState();
@@ -141,6 +156,7 @@ function attachHomeListeners() {
     if (characterBtn) {
         characterBtn.addEventListener('pointerdown', handleTap);
     }
+    updateStatsWidget(); // Initial update when home loads
 }
 
 function handleTap(e) {
@@ -182,9 +198,9 @@ function handleTap(e) {
         // Character Animation
         const charContainer = document.getElementById('character-btn');
         if (charContainer) {
-            charContainer.style.transform = 'scale(0.95)';
+            charContainer.classList.add('tapping');
             setTimeout(() => {
-                charContainer.style.transform = 'scale(1)';
+                charContainer.classList.remove('tapping');
             }, 100);
         }
     }
@@ -248,7 +264,16 @@ function attachSkinsListeners() {
                 const btn = s.querySelector('.skin-btn');
                 if (btn) {
                     const price = s.dataset.price;
-                    btn.innerText = price ? price : 'Выбрать';
+                    if (price) {
+                        btn.innerHTML = `
+                            <div class="btn-content">
+                                <span class="btn-price">${Number(price).toLocaleString()}</span>
+                                <img src="icons/etc/Money_fill.svg" class="btn-icon" alt="">
+                            </div>
+                        `;
+                    } else {
+                        btn.innerText = 'Выбрать';
+                    }
                     btn.disabled = false;
                 }
             });
@@ -456,20 +481,27 @@ const UPGRADE_BASE = {
 const UPGRADE_COST = {
     energy: {2: 500, 3: 2500},
     speed: {2: 1000, 3: 5000},
-    multitap: {2: 2000, 3: 10000}
+    multitap: {2: 2000, 3: 10000},
+    farm_unlock: {2: 0} // Unlock is Level 2, price is 0
 };
 
 function getUpgradeState() {
+    const defaults = { energy: 1, speed: 1, multitap: 1, farm_unlock: 1 };
     try {
         const raw = localStorage.getItem('tapalka_upgrades');
-        if (raw) return JSON.parse(raw);
+        if (raw) {
+            const parsed = JSON.parse(raw);
+            return { ...defaults, ...parsed };
+        }
     } catch (_) {}
-    return { energy: 1, speed: 1, multitap: 1 };
+    return defaults;
 }
 
 function saveUpgradeState(state) {
     localStorage.setItem('tapalka_upgrades', JSON.stringify(state));
 }
+
+let farmTransitionTimeout = null;
 
 function applyUpgradesFromState() {
     const state = getUpgradeState();
@@ -478,6 +510,45 @@ function applyUpgradesFromState() {
     tapPower = UPGRADE_BASE.multitap[state.multitap];
     if (currentEnergy > maxEnergy) currentEnergy = maxEnergy;
     updateEnergyDisplay();
+    updateStatsWidget(); // Update the home screen widget
+    
+    // Toggle Farm Visibility
+    const farmNav = document.getElementById('nav-farm');
+    if (farmNav) {
+        if (state.farm_unlock >= 2) {
+            if (farmTransitionTimeout) {
+                clearTimeout(farmTransitionTimeout);
+                farmTransitionTimeout = null;
+            }
+            farmNav.classList.remove('hide');
+            farmNav.classList.add('show');
+        } else {
+            if (farmNav.classList.contains('show')) {
+                if (!farmNav.classList.contains('hide')) {
+                    farmNav.classList.add('hide');
+                    if (farmTransitionTimeout) clearTimeout(farmTransitionTimeout);
+                    farmTransitionTimeout = setTimeout(() => {
+                        farmNav.classList.remove('show');
+                        farmNav.classList.remove('hide');
+                        farmTransitionTimeout = null;
+                    }, 300); // match animation duration
+                }
+            } else {
+                farmNav.classList.remove('show');
+                farmNav.classList.remove('hide');
+            }
+        }
+    }
+}
+
+function updateStatsWidget() {
+    const tapEl = document.getElementById('stat-tap');
+    const regenEl = document.getElementById('stat-regen');
+    const limitEl = document.getElementById('stat-limit');
+    
+    if (tapEl) tapEl.innerText = `+${tapPower}`;
+    if (regenEl) regenEl.innerText = `+${Math.round(BASE_REGEN_PER_SEC * regenMultiplier)}`;
+    if (limitEl) limitEl.innerText = maxEnergy;
 }
 
 function attachUpgradeListeners() {
@@ -490,7 +561,8 @@ function attachUpgradeListeners() {
             if (!parent) return;
             const type = parent.dataset.upgrade;
             const state = getUpgradeState();
-            if (state[type] >= 3) {
+            const isMax = type === 'farm_unlock' ? state[type] >= 2 : state[type] >= 3;
+            if (isMax) {
                 if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
                 showNotify('уже MAX уровень');
                 return;
@@ -502,7 +574,7 @@ function attachUpgradeListeners() {
 
 function renderUpgradeUI() {
     const state = getUpgradeState();
-    ['energy','speed','multitap'].forEach(type => {
+    ['energy','speed','multitap','farm_unlock'].forEach(type => {
         const item = contentArea.querySelector(`.upgrade-item[data-upgrade="${type}"]`);
         if (!item) return;
         const title = item.querySelector('.upgrade-info h3');
@@ -510,30 +582,39 @@ function renderUpgradeUI() {
         const btn = item.querySelector('.upgrade-btn');
         const levels = item.querySelectorAll('.upgrade-levels .level-box');
         const currentLevel = state[type];
-        const nextLevel = Math.min(currentLevel + 1, 3);
-        if (title) title.innerHTML = `${mapTitle(type)} <span class="level-badge">${currentLevel}</span>`;
+        
+        const isMax = type === 'farm_unlock' ? currentLevel >= 2 : currentLevel >= 3;
+        const nextLevel = isMax ? currentLevel : currentLevel + 1;
+
+        if (title) {
+            if (type === 'farm_unlock') {
+                title.innerHTML = mapTitle(type);
+            } else {
+                title.innerHTML = `${mapTitle(type)} <span class="level-badge">${currentLevel}</span>`;
+            }
+        }
         if (desc) desc.innerText = mapDescription(type, nextLevel);
-        item.classList.toggle('max', currentLevel >= 3);
-        const levelsWrap = item.querySelector('.upgrade-levels');
-        if (levelsWrap) levelsWrap.classList.toggle('max', currentLevel >= 3);
-        if (currentLevel >= 3) {
-            btn.innerHTML = '<span class="badge-max">MAX</span> уровень';
+        
+        item.classList.toggle('max', isMax);
+        if (isMax) {
+            btn.innerHTML = '<span class="badge-max">MAX LEVEL</span>';
             btn.classList.add('max');
-            btn.disabled = false;
-            btn.dataset.max = 'true';
+            btn.disabled = true;
         } else {
             const price = UPGRADE_COST[type][nextLevel];
-            btn.innerText = `купить за ${price.toLocaleString()}`;
-            btn.disabled = false;
-            btn.classList.remove('max');
-            btn.dataset.max = 'false';
-        }
-        if (levels && levels.length === 3) {
-            levels.forEach((el, idx) => {
-                el.textContent = '';
-                el.classList.remove('active','next');
-                if (idx < currentLevel) el.classList.add('active');
-            });
+            if (price !== undefined) {
+                btn.innerHTML = `
+                    <div class="btn-content">
+                        <span class="btn-price">${price.toLocaleString()}</span>
+                        <img src="icons/etc/Money_fill.svg" class="btn-icon" alt="">
+                    </div>
+                `;
+                btn.disabled = false;
+                btn.classList.remove('max');
+            } else {
+                btn.innerHTML = '---';
+                btn.disabled = true;
+            }
         }
     });
 }
@@ -542,6 +623,7 @@ function mapTitle(type) {
     if (type === 'energy') return 'Энергия';
     if (type === 'speed') return 'Скорость';
     if (type === 'multitap') return 'Мультитап';
+    if (type === 'farm_unlock') return 'Ферма';
     return type;
 }
 
@@ -558,13 +640,15 @@ function mapDescription(type, level) {
         const val = UPGRADE_BASE.multitap[level];
         return `за тап +${val}`;
     }
+    if (type === 'farm_unlock') return 'Разблокировать пассивный доход';
     return '';
 }
 
 function purchaseUpgrade(type) {
     const state = getUpgradeState();
     const currentLevel = state[type];
-    if (currentLevel >= 3) return;
+    const isMax = type === 'farm_unlock' ? currentLevel >= 2 : currentLevel >= 3;
+    if (isMax) return;
     const nextLevel = currentLevel + 1;
     const price = UPGRADE_COST[type][nextLevel];
     if (score < price) {
@@ -579,7 +663,133 @@ function purchaseUpgrade(type) {
     saveUpgradeState(state);
     applyUpgradesFromState();
     renderUpgradeUI();
+    
+    if (type === 'farm_unlock') {
+        showNotify('Добавлен новый раздел: Ферма', 'icons/navigation/maximize-svgrepo-com.svg');
+    }
+    
     if (tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
+}
+
+// --- FARM LOGIC ---
+function loadWorkerState() {
+    try {
+        const raw = localStorage.getItem('tapalka_workers');
+        if (raw) activeWorkers = JSON.parse(raw);
+    } catch (_) {}
+}
+
+function saveWorkerState() {
+    localStorage.setItem('tapalka_workers', JSON.stringify(activeWorkers));
+}
+
+function attachFarmListeners() {
+    updateFarmUI();
+    const buyButtons = contentArea.querySelectorAll('.worker-buy');
+    buyButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const card = btn.closest('.worker-card');
+            const workerId = card.dataset.worker;
+            const config = WORKERS[workerId];
+            
+            if (activeWorkers[workerId] && activeWorkers[workerId] > Date.now()) {
+                showNotify('Рабочий уже нанят');
+                return;
+            }
+            
+            if (score < config.price) {
+                showNotify('Недостаточно баланса', 'icons/etc/Remove.svg');
+                return;
+            }
+            
+            // Purchase
+            score -= config.price;
+            updateScoreDisplay();
+            saveScoreDebounced();
+            
+            activeWorkers[workerId] = Date.now() + config.duration * 1000;
+            saveWorkerState();
+            updateFarmUI();
+            startPassiveIncomeTick(); // Restart timer with new income
+            
+            showNotify('Рабочий нанят!', 'icons/navigation/human-boy-person-man-svgrepo-com.svg');
+            if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+        });
+    });
+
+    const closeBtn = document.getElementById('btn-close-farm');
+    if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+            // Refund 0
+            score += 0;
+            updateScoreDisplay();
+            saveScoreDebounced();
+            
+            // Reset farm upgrade
+            const state = getUpgradeState();
+            state.farm_unlock = 1;
+            saveUpgradeState(state);
+            
+            // Clear workers
+            activeWorkers = {};
+            saveWorkerState();
+            
+            // Apply changes
+            applyUpgradesFromState();
+            
+            // Navigate home
+            const navHome = document.getElementById('nav-home');
+            const navItems = document.querySelectorAll('.nav-item');
+            navItems.forEach(n => n.classList.remove('active'));
+            if (navHome) navHome.classList.add('active');
+            
+            loadScreen(routes['nav-home']);
+            
+            showNotify('Средства за покупку фермы возвращены.', 'icons/etc/Money_fill.svg');
+            if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('warning');
+        });
+    }
+
+    // Timer Update
+    const timerInterval = setInterval(() => {
+        if (!contentArea.querySelector('.farm-stats')) {
+            clearInterval(timerInterval);
+            return;
+        }
+        updateFarmUI();
+    }, 1000);
+}
+
+function updateFarmUI() {
+    const now = Date.now();
+    let totalIncome = incomePerMin;
+    
+    Object.keys(WORKERS).forEach(id => {
+        const timerEl = document.getElementById(`timer-${id}`);
+        const btn = contentArea.querySelector(`.worker-card[data-worker="${id}"] .worker-buy`);
+        
+        if (activeWorkers[id] && activeWorkers[id] > now) {
+            const remain = Math.ceil((activeWorkers[id] - now) / 1000);
+            const h = Math.floor(remain / 3600);
+            const m = Math.floor((remain % 3600) / 60);
+            const s = remain % 60;
+            if (timerEl) {
+                timerEl.innerText = `активен: ${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+                timerEl.classList.add('active');
+            }
+            if (btn) btn.disabled = true;
+            totalIncome += WORKERS[id].income;
+        } else {
+            if (timerEl) {
+                timerEl.innerText = 'свободен';
+                timerEl.classList.remove('active');
+            }
+            if (btn) btn.disabled = false;
+        }
+    });
+    
+    const incomeVal = document.getElementById('farm-income-val');
+    if (incomeVal) incomeVal.innerText = totalIncome;
 }
 
 let notifyLastTs = 0;
@@ -762,52 +972,69 @@ function saveScoreDebounced() {
 
 function startPassiveIncomeTick() {
     if (passiveTimerId) clearInterval(passiveTimerId);
-    const msPerCoin = incomePerMin > 0 ? Math.max(200, Math.floor(60000 / incomePerMin)) : 0;
-    if (msPerCoin > 0) {
-        passiveTimerId = setInterval(async () => {
-            score += 1;
-            updateScoreDisplay();
-            localStorage.setItem('tapalka_score', score);
-            const now = Date.now();
-            if (supabase) {
-                const user = tg.initDataUnsafe?.user;
-                if (user && now - passiveSaveTs >= 60000) {
-                    passiveSaveTs = now;
-                    try {
-                        await supabase
-                            .from('users')
-                            .update({ balance: score, last_income_at: new Date().toISOString() })
-                            .eq('telegram_id', user.id);
-                    } catch (_) {}
-                }
+    
+    // Update income including workers
+    const updatePassiveIncome = () => {
+        let totalIncome = incomePerMin;
+        const now = Date.now();
+        
+        Object.keys(activeWorkers).forEach(id => {
+            if (activeWorkers[id] > now) {
+                totalIncome += WORKERS[id].income;
             }
-        }, msPerCoin);
-    }
+        });
+        
+        const msPerCoin = totalIncome > 0 ? Math.max(200, Math.floor(60000 / totalIncome)) : 0;
+        
+        if (msPerCoin > 0) {
+            if (passiveTimerId) clearInterval(passiveTimerId);
+            passiveTimerId = setInterval(async () => {
+                score += 1;
+                updateScoreDisplay();
+                localStorage.setItem('tapalka_score', score);
+                const currentNow = Date.now();
+                if (supabase) {
+                    const user = tg.initDataUnsafe?.user;
+                    if (user && currentNow - passiveSaveTs >= 60000) {
+                        passiveSaveTs = currentNow;
+                        try {
+                            await supabase
+                                .from('users')
+                                .update({ balance: score, last_income_at: new Date().toISOString() })
+                                .eq('telegram_id', user.id);
+                        } catch (_) {}
+                    }
+                }
+            }, msPerCoin);
+        }
+    };
+
+    updatePassiveIncome();
+    // Periodically re-calculate income in case workers expire
+    setInterval(updatePassiveIncome, 5000);
 }
 
 // Helper: Floating Text
 function showFloatingText(x, y) {
-    const floatingText = document.createElement('div');
-    floatingText.className = 'floating-text';
-    floatingText.innerText = `+${tapPower}`;
+    const btn = document.getElementById('character-btn');
+    if (!btn) return;
+
+    const rect = btn.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top; // Над человечком
+
+    const bubble = document.createElement('div');
+    bubble.className = 'tap-bubble';
+    bubble.innerText = `+${tapPower}`;
     
-    if (x === 0 && y === 0) {
-        const btn = document.getElementById('character-btn');
-        if (btn) {
-            const rect = btn.getBoundingClientRect();
-            x = rect.left + rect.width / 2;
-            y = rect.top + rect.height / 2;
-        }
-    }
+    bubble.style.left = `${centerX}px`;
+    bubble.style.top = `${centerY}px`;
     
-    floatingText.style.left = `${x}px`;
-    floatingText.style.top = `${y}px`;
-    
-    document.body.appendChild(floatingText);
+    document.body.appendChild(bubble);
     
     setTimeout(() => {
-        floatingText.remove();
-    }, 1000);
+        bubble.remove();
+    }, 700);
 }
 
 // Start

@@ -1,0 +1,73 @@
+<div class="screen-container">
+    <h2>ФЕРМА</h2>
+    <p class="screen-subtitle">наймите рабочих, чтобы они добывали монеты для вас, пока вы отдыхаете</p>
+    
+    <div class="farm-stats">
+        <div class="farm-stat-card">
+            <span class="farm-stat-label">ДОХОД В МИНУТУ</span>
+            <div class="farm-stat-value">
+                <span id="farm-income-val">50</span>
+                <img src="icons/etc/Money_fill.svg" alt="" class="farm-income-icon">
+            </div>
+        </div>
+    </div>
+
+    <div class="worker-list">
+        <div class="worker-card" data-worker="intern">
+            <div class="worker-preview">
+                <img src="icons/navigation/human-boy-person-man-svgrepo-com.svg" alt="" style="filter: brightness(0) invert(1) opacity(0.7);">
+            </div>
+            <div class="worker-info">
+                <h3>Стажёр</h3>
+                <p>+100 монет/мин на 1 час</p>
+                <div class="worker-timer" id="timer-intern">свободен</div>
+            </div>
+            <button class="upgrade-btn worker-buy" data-price="500">
+                <div class="btn-content">
+                    <span class="btn-price">500</span>
+                    <img src="icons/etc/Money_fill.svg" class="btn-icon" alt="">
+                </div>
+            </button>
+        </div>
+
+        <div class="worker-card" data-worker="expert">
+            <div class="worker-preview">
+                <img src="icons/navigation/maximize-svgrepo-com.svg" alt="" style="filter: brightness(0) invert(1) opacity(0.8); transform: rotate(45deg);">
+            </div>
+            <div class="worker-info">
+                <h3>Специалист</h3>
+                <p>+300 монет/мин на 3 часа</p>
+                <div class="worker-timer" id="timer-expert">свободен</div>
+            </div>
+            <button class="upgrade-btn worker-buy" data-price="2500">
+                <div class="btn-content">
+                    <span class="btn-price">2,500</span>
+                    <img src="icons/etc/Money_fill.svg" class="btn-icon" alt="">
+                </div>
+            </button>
+        </div>
+
+        <div class="worker-card" data-worker="manager">
+            <div class="worker-preview">
+                <img src="icons/etc/Chart_fill.svg" alt="" style="filter: brightness(0) invert(1);">
+            </div>
+            <div class="worker-info">
+                <h3>Менеджер</h3>
+                <p>+1000 монет/мин на 8 часов</p>
+                <div class="worker-timer" id="timer-manager">свободен</div>
+            </div>
+            <button class="upgrade-btn worker-buy" data-price="10000">
+                <div class="btn-content">
+                    <span class="btn-price">10,000</span>
+                    <img src="icons/etc/Money_fill.svg" class="btn-icon" alt="">
+                </div>
+            </button>
+        </div>
+    </div>
+
+    <div class="farm-actions">
+        <button id="btn-close-farm" class="close-farm-btn">
+            Закрыть ферму
+        </button>
+    </div>
+</div>

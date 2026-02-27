@@ -4,19 +4,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Tapalka Game</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=5.2">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
     <div class="app-container">
         <div class="score-container">
-            <span class="score-label">BALANCE</span>
+            <div class="score-display">
+                <h1 id="score">0</h1>
+                <img src="icons/etc/Money_fill.svg" alt="Coin" class="score-coin">
+            </div>
+            
             <div class="score-agreement">
                 <button id="btn-agreement" class="score-agreement-btn" aria-label="Соглашение">
                     <img src="icons/etc/User_scan_light.svg" alt="Соглашение">
+                    <span class="agreement-text">соглашение пользователя</span>
                 </button>
-                <span class="score-agreement-label">соглашение</span>
             </div>
             <div class="score-actions">
                 <button id="btn-leaderboard" class="score-action-btn" aria-label="Топ">
@@ -26,7 +30,6 @@
                     <img src="icons/etc/On_light.svg" alt="Тема">
                 </button>
             </div>
-            <h1 id="score">0</h1>
         </div>
 
         <div id="notify-root" class="notify-container"></div>
@@ -36,32 +39,31 @@
             <!-- Content will be loaded here -->
         </div>
 
+        <div class="bottom-container">
         <nav class="bottom-nav">
             <button class="nav-item" id="nav-upgrade">
                 <div class="nav-icon">
-                    <img src="icons/navigation/maximize-svgrepo-com.svg" alt="Upgrade">
+                    <img src="icons/navigation/package_search.svg" alt="Upgrades">
                 </div>
-                <span class="nav-label">Прокачка</span>
             </button>
             <button class="nav-item active" id="nav-home">
                 <div class="nav-icon">
                     <img src="icons/navigation/house-02-svgrepo-com.svg" alt="Home">
                 </div>
-                <span class="nav-label">Главная</span>
             </button>
             <button class="nav-item" id="nav-skins">
                 <div class="nav-icon">
                     <img src="icons/navigation/skin-svgrepo-com.svg" alt="Skins">
                 </div>
-                <span class="nav-label">Скины</span>
-            </button>
-            <button class="nav-item disabled" id="nav-cases">
-                <div class="nav-icon">
-                    <img src="icons/navigation/package_search.svg" alt="Кейсы">
-                </div>
-                <span class="nav-label">Кейсы</span>
             </button>
         </nav>
+        
+        <button class="nav-item farm-fab" id="nav-farm">
+            <div class="nav-icon">
+                <img src="icons/navigation/maximize-svgrepo-com.svg" alt="Farm" style="transform: rotate(45deg);">
+            </div>
+        </button>
+    </div>
     </div>
 
     <script type="module" src="script.js"></script>

@@ -1,15 +1,37 @@
 <div class="game-area">
+    <!-- Stats Widget -->
+    <div class="stats-widget">
+        <div class="stat-item">
+            <span class="stat-label">ЗА ТАП</span>
+            <span class="stat-value" id="stat-tap">+1</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+            <span class="stat-label">В СЕК</span>
+            <span class="stat-value" id="stat-regen">+1</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+            <span class="stat-label">ЛИМИТ</span>
+            <span class="stat-value" id="stat-limit">30</span>
+        </div>
+    </div>
+
     <div class="character-container" id="character-btn">
         <img src="icons/navigation/human-boy-person-man-svgrepo-com.svg" alt="Character" class="character-img">
     </div>
     
     <div class="energy-container">
-        <div class="energy-text">
-            <span id="current-energy">30</span> / <span id="max-energy">30</span>
-            <span class="energy-note">(-1 каждое нажатие)</span>
-        </div>
         <div class="energy-bar">
+            <!-- Background animated stripes -->
+            <div class="energy-bar-bg"></div>
+            <!-- Foreground fill -->
             <div class="energy-fill" id="energy-fill" style="width: 100%;"></div>
+            <!-- Text inside the bar -->
+            <div class="energy-content">
+                <span class="energy-val"><span id="current-energy">30</span> / <span id="max-energy">30</span></span>
+                <span class="energy-label">энергия</span>
+            </div>
         </div>
     </div>
 </div>
