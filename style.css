@@ -212,7 +212,15 @@ h3, .title-3 {
 .content-area {
     flex: 1;
     overflow-y: auto;
+    /* Скрываем полосу прокрутки для Chrome, Safari и Opera */
+    -ms-overflow-style: none;  /* IE и Edge */
+    scrollbar-width: none;  /* Firefox */
 }
+
+.content-area::-webkit-scrollbar {
+    display: none;
+}
+
 .content-area.home {
     overflow: hidden;
 }
